@@ -1,0 +1,56 @@
+{
+  "name": "character-card-studio",
+  "version": "0.1.0",
+  "private": true,
+  "description": "All-in-one editor for V3 character cards and lorebooks.",
+  "homepage": "https://bigsombar.github.io/character-card-studio/",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/bigsombar/character-card-studio.git"
+  },
+  "type": "module",
+  "dependencies": {
+    "@emotion/react": "^11.14.0",
+    "@emotion/styled": "^11.14.1",
+    "@fontsource-variable/inter": "^5.3.0",
+    "@fontsource-variable/jetbrains-mono": "^5.3.0",
+    "@fontsource-variable/space-grotesk": "^5.3.0",
+    "@hello-pangea/dnd": "^18.0.1",
+    "@mui/icons-material": "^9.5.0",
+    "@mui/material": "^9.5.0",
+    "@zip.js/zip.js": "^2.25.0",
+    "browser-image-compression": "^2.0.2",
+    "idb": "^8.0.4",
+    "js-base64": "^3.7.7",
+    "lodash.debounce": "^4.0.8",
+    "react": "^19.3.1",
+    "react-dom": "^19.3.1"
+  },
+  "scripts": {
+    "dev": "vite",
+    "start": "vite",
+    "build": "vite build",
+    "preview": "vite preview --base /character-card-studio/",
+    "test": "vitest",
+    "test:run": "vitest run",
+    "lint": "eslint .",
+    "predeploy": "npm run build",
+    "deploy": "gh-pages -d dist"
+  },
+  "devDependencies": {
+    "@eslint/js": "^10.0.1",
+    "@testing-library/jest-dom": "^7.0.1",
+    "@testing-library/react": "^16.3.3",
+    "@testing-library/user-event": "^14.6.10",
+    "@vitejs/plugin-react": "^6.3.0",
+    "axe-core": "^4.14.1",
+    "eslint": "^10.15.0",
+    "eslint-plugin-react-hooks": "^7.1.1",
+    "fake-indexeddb": "^6.2.8",
+    "gh-pages": "^6.3.0",
+    "globals": "^17.14.0",
+    "jsdom": "^31.0.1",
+    "vite": "^8.3.8",
+    "vitest": "^5.1.0"
+  }
+}
