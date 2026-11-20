@@ -1,11 +1,12 @@
 import { act, renderHook, waitFor } from '@testing-library/react';
 import { beforeEach, describe, expect, test, vi } from 'vitest';
 
-import usePortraitCompression from './usePortraitCompression';
-import { compressPortraitSource, readPortraitInfo } from './portraitCompression';
+import usePortraitCompression, { ORIGINAL_TARGET, PORTRAIT_MP_PRESETS } from './usePortraitCompression';
+import { compressPortraitToTarget, readPortraitInfo } from './portraitCompression';
 
-vi.mock('./portraitCompression', () => ({
-    compressPortraitSource: vi.fn(),
+vi.mock('./portraitCompression', async (importOriginal) => ({
+    ...(await importOriginal()),
+    compressPortraitToTarget: vi.fn(),
     readPortraitInfo: vi.fn(),
 }));
 
@@ -29,10 +30,14 @@ function deferred() {
     return { promise, reject, resolve };
 }
 
+function compressedFile(name) {
+    return new File(['compressed'], name, { type: 'image/png' });
+}
+
 describe('usePortraitCompression', () => {
     beforeEach(() => {
         vi.clearAllMocks();
-        compressPortraitSource.mockResolvedValue(new File(['default'], 'default.png', { type: 'image/png' }));
+        compressPortraitToTarget.mockResolvedValue(compressedFile('default.png'));
     });
 
     test('measures the source and starts on the original image', async () => {
@@ -43,60 +48,61 @@ describe('usePortraitCompression', () => {
 
         await waitFor(() => expect(result.current.result).toEqual(original));
         expect(result.current.original).toEqual(original);
-        expect(result.current.maxSide).toBe('original');
+        expect(result.current.target).toBe(ORIGINAL_TARGET);
         expect(result.current.busy).toBe(false);
         expect(result.current.error).toBeNull();
         expect(readPortraitInfo).toHaveBeenCalledWith('data:original');
     });
 
-    test('offers only presets that actually downscale the portrait', async () => {
+    test('offers only megapixel presets that reduce the image', async () => {
         readPortraitInfo.mockResolvedValue(portrait(3000, 2000));
         const wide = renderHook(() => usePortraitCompression({ open: true, source: 'data:original' }));
         await waitFor(() => expect(wide.result.current.original).not.toBeNull());
-        expect(wide.result.current.presets).toEqual([2048, 1536, 1024, 768, 512]);
+        expect(wide.result.current.presets).toEqual(PORTRAIT_MP_PRESETS);
 
         readPortraitInfo.mockResolvedValue(portrait(700, 900));
         const small = renderHook(() => usePortraitCompression({ open: true, source: 'data:small' }));
         await waitFor(() => expect(small.result.current.original).not.toBeNull());
-        expect(small.result.current.presets).toEqual([768, 512]);
+        expect(small.result.current.presets).toEqual([0.5]);
     });
 
-    test('compresses from the original source for the selected size', async () => {
+    test('compresses from the original source for the selected megapixels', async () => {
         const original = portrait(3000, 2000, 500000, 'data:original');
-        const compressed = portrait(1024, 683, 80000, 'data:1024');
+        const compressed = portrait(1232, 816, 80000, 'data:compressed');
         readPortraitInfo.mockImplementation(async (source) => (
             source === 'data:original' ? original : compressed
         ));
-        compressPortraitSource.mockResolvedValue(new File(['compressed'], '1024.png', { type: 'image/png' }));
+        compressPortraitToTarget.mockResolvedValue(compressedFile('1mp.png'));
 
         const { result } = renderHook(() => usePortraitCompression({ open: true, source: 'data:original' }));
         await waitFor(() => expect(result.current.original).toEqual(original));
 
-        act(() => result.current.selectSize(1024));
+        act(() => result.current.selectTarget(1));
 
-        // Apply must be disabled immediately, not one frame after the click.
+        // The old result is dropped immediately, so Apply cannot use a stale preview.
         expect(result.current.busy).toBe(true);
+        expect(result.current.result).toBeNull();
 
         await waitFor(() => expect(result.current.result).toEqual(compressed));
-        expect(compressPortraitSource).toHaveBeenCalledWith(original.dataUrl, 1024);
-        expect(compressPortraitSource).toHaveBeenCalledTimes(1);
+        expect(compressPortraitToTarget).toHaveBeenCalledWith(original.dataUrl, 1);
+        expect(compressPortraitToTarget).toHaveBeenCalledTimes(1);
         expect(result.current.busy).toBe(false);
     });
 
     test('returns to the untouched original when "Original" is selected again', async () => {
-        const original = portrait(3000, 2000, '500000', 'data:original');
-        const compressed = portrait(1024, 683, 80000, 'data:1024');
+        const original = portrait(3000, 2000, 500000, 'data:original');
+        const compressed = portrait(1232, 816, 80000, 'data:compressed');
         readPortraitInfo.mockImplementation(async (source) => (
             source === 'data:original' ? original : compressed
         ));
-        compressPortraitSource.mockResolvedValue(new File(['compressed'], '1024.png', { type: 'image/png' }));
+        compressPortraitToTarget.mockResolvedValue(compressedFile('1mp.png'));
 
         const { result } = renderHook(() => usePortraitCompression({ open: true, source: 'data:original' }));
         await waitFor(() => expect(result.current.original).toEqual(original));
-        act(() => result.current.selectSize(1024));
+        act(() => result.current.selectTarget(1));
         await waitFor(() => expect(result.current.result).toEqual(compressed));
 
-        act(() => result.current.selectSize('original'));
+        act(() => result.current.selectTarget(ORIGINAL_TARGET));
 
         // Switching back is synchronous: Apply never points at the compressed preview for a frame.
         expect(result.current.result).toEqual(original);
@@ -104,22 +110,22 @@ describe('usePortraitCompression', () => {
         expect(result.current.error).toBeNull();
     });
 
-    test('ignores an in-flight compression after switching back to the original', async () => {
+    test('ignores an in-flight resize after switching back to the original', async () => {
         const original = portrait(3000, 2000, 500000, 'data:original');
         const pending = deferred();
         readPortraitInfo.mockImplementation(async (source) => (
-            source === 'data:original' ? original : portrait(1024, 683, 80000, 'data:1024')
+            source === 'data:original' ? original : portrait(1232, 816, 80000, 'data:compressed')
         ));
-        compressPortraitSource.mockReturnValue(pending.promise);
+        compressPortraitToTarget.mockReturnValue(pending.promise);
 
         const { result } = renderHook(() => usePortraitCompression({ open: true, source: 'data:original' }));
         await waitFor(() => expect(result.current.original).toEqual(original));
 
-        act(() => result.current.selectSize(1024));
-        act(() => result.current.selectSize('original'));
+        act(() => result.current.selectTarget(1));
+        act(() => result.current.selectTarget(ORIGINAL_TARGET));
 
         await act(async () => {
-            pending.resolve(new File(['late'], '1024.png', { type: 'image/png' }));
+            pending.resolve(compressedFile('1mp.png'));
             await pending.promise;
         });
 
@@ -137,58 +143,58 @@ describe('usePortraitCompression', () => {
         expect(result.current.result).toBeNull();
     });
 
-    test('reports a failed compression and clears the busy state', async () => {
+    test('reports a failed resize and clears the busy state', async () => {
         const original = portrait(3000, 2000);
         readPortraitInfo.mockResolvedValue(original);
-        compressPortraitSource.mockRejectedValue(new Error('decoder exploded'));
+        compressPortraitToTarget.mockRejectedValue(new Error('decoder exploded'));
 
         const { result } = renderHook(() => usePortraitCompression({ open: true, source: original.dataUrl }));
         await waitFor(() => expect(result.current.original).toEqual(original));
 
-        act(() => result.current.selectSize(1024));
+        act(() => result.current.selectTarget(1));
 
         await waitFor(() => expect(result.current.error).toMatch(/Portrait compression failed: decoder exploded/));
         expect(result.current.busy).toBe(false);
     });
 
-    test('ignores a stale result when the user picks another size quickly', async () => {
+    test('ignores a stale result when the user picks another target quickly', async () => {
         const original = portrait(3000, 2000, 500000, 'data:original');
         const first = deferred();
         const second = deferred();
-        const compressed1024 = portrait(1024, 683, 80000, 'data:1024');
-        const compressed512 = portrait(512, 341, 20000, 'data:512');
+        const compressedTwo = portrait(1728, 1152, 160000, 'data:2mp');
+        const compressedOne = portrait(1232, 816, 80000, 'data:1mp');
 
         readPortraitInfo.mockImplementation(async (source) => {
             if (source === 'data:original') return original;
-            if (source === 'data:1024') return compressed1024;
-            return compressed512;
+            if (source.includes('2mp')) return compressedTwo;
+            return compressedOne;
         });
-        compressPortraitSource
+        compressPortraitToTarget
             .mockReturnValueOnce(first.promise)
             .mockReturnValueOnce(second.promise);
 
         const { result } = renderHook(() => usePortraitCompression({ open: true, source: 'data:original' }));
         await waitFor(() => expect(result.current.original).toEqual(original));
 
-        act(() => result.current.selectSize(1024));
-        act(() => result.current.selectSize(512));
+        act(() => result.current.selectTarget(2));
+        act(() => result.current.selectTarget(1));
 
         await act(async () => {
-            second.resolve(new File(['small'], '512.png', { type: 'image/png' }));
+            second.resolve(compressedFile('1mp.png'));
             await second.promise;
         });
-        await waitFor(() => expect(result.current.result).toEqual(compressed512));
+        await waitFor(() => expect(result.current.result).toEqual(compressedOne));
 
         await act(async () => {
-            first.resolve(new File(['large'], '1024.png', { type: 'image/png' }));
+            first.resolve(compressedFile('2mp.png'));
             await first.promise;
         });
 
-        expect(result.current.result).toEqual(compressed512);
+        expect(result.current.result).toEqual(compressedOne);
     });
 
-    test('resets the size choice and measurements when the source changes', async () => {
-        const first = portrait(3000, 2000, '500000', 'data:first');
+    test('resets the target and measurements when the source changes', async () => {
+        const first = portrait(3000, 2000, 500000, 'data:first');
         const next = portrait(800, 600, 70000, 'data:next');
         readPortraitInfo.mockImplementation(async (source) => (
             source === 'data:first' ? first : next
@@ -199,17 +205,17 @@ describe('usePortraitCompression', () => {
             { initialProps: { source: 'data:first' } },
         );
         await waitFor(() => expect(result.current.original).toEqual(first));
-        act(() => result.current.selectSize(1024));
+        act(() => result.current.selectTarget(1));
         await waitFor(() => expect(result.current.original).toEqual(first));
 
         rerender({ source: 'data:next' });
 
         await waitFor(() => expect(result.current.original).toEqual(next));
-        expect(result.current.maxSide).toBe('original');
+        expect(result.current.target).toBe(ORIGINAL_TARGET);
         expect(result.current.result).toEqual(next);
     });
 
-    test('applies two batched size clicks in order instead of ignoring the second one', async () => {
+    test('applies two batched target clicks in order instead of ignoring the second one', async () => {
         const original = portrait(3000, 2000);
         readPortraitInfo.mockResolvedValue(original);
 
@@ -217,24 +223,24 @@ describe('usePortraitCompression', () => {
         await waitFor(() => expect(result.current.original).toEqual(original));
 
         act(() => {
-            result.current.selectSize(1024);
-            result.current.selectSize('original');
+            result.current.selectTarget(2);
+            result.current.selectTarget(ORIGINAL_TARGET);
         });
 
-        expect(result.current.maxSide).toBe('original');
+        expect(result.current.target).toBe(ORIGINAL_TARGET);
         expect(result.current.busy).toBe(false);
         expect(result.current.result).toEqual(original);
-        expect(compressPortraitSource).not.toHaveBeenCalled();
+        expect(compressPortraitToTarget).not.toHaveBeenCalled();
     });
 
-    test('keeps the current size when the active toggle is clicked again', async () => {
+    test('keeps the current target when the active toggle is clicked again', async () => {
         readPortraitInfo.mockResolvedValue(portrait(3000, 2000));
         const { result } = renderHook(() => usePortraitCompression({ open: true, source: 'data:original' }));
         await waitFor(() => expect(result.current.original).not.toBeNull());
 
-        act(() => result.current.selectSize(1024));
-        act(() => result.current.selectSize(null));
+        act(() => result.current.selectTarget(1));
+        act(() => result.current.selectTarget(null));
 
-        expect(result.current.maxSide).toBe(1024);
+        expect(result.current.target).toBe(1);
     });
 });
