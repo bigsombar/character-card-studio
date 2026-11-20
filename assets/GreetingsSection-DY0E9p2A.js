@@ -1,1 +1,0 @@
-import{t as e}from"./GreetingListEditor-BU6ApZW6.js";import{At as t}from"./Modal-Bqq-eLIt.js";var n=t();function r(){return(0,n.jsx)(e,{kind:`alternate`})}export{r as default};
