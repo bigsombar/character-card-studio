@@ -410,32 +410,26 @@ export default function selectPreferredCardChunk(chunks) {
  * Builds the V3 object embedded in exports without mutating the state it is built from.
  * Export is V3-only; V2 is accepted on import and never written back.
  *
- * @param {Object} cardData Current card state
- * @param {number} [now] Unix timestamp (seconds) to stamp as the modification date
+ * @param {Object} cardData Snapshot of the card to serialize
+ * @param {number} [now] Unix-seconds stamp written into modification_date; defaults to "now"
  * @returns {Object}
  */
 export function buildOutgoingCard(cardData, now = nowSeconds()) {
-    const specVersion = typeof cardData?.spec_version === 'string' && cardData.spec_version.trim() !== ''
-        ? cardData.spec_version
-        : SPEC_VERSION;
+    const outgoing = { ...cardData, data: { ...cardData.data } };
+    const declared = typeof cardData?.spec_version === 'string' ? cardData.spec_version.trim() : '';
 
-    return {
-        ...cardData,
-        spec: SPEC_NAME,
-        spec_version: specVersion,
-        data: {
-            ...cardData.data,
-            creation_date: cardData.data?.creation_date ?? now,
-            modification_date: now,
-        },
-    };
+    outgoing.spec = SPEC_NAME;
+    outgoing.spec_version = declared !== '' ? declared : SPEC_VERSION;
+    outgoing.data.creation_date ??= now;
+    outgoing.data.modification_date = now;
+    return outgoing;
 }
 
 /**
  * Assembles an exportable V3 character card PNG from a portrait image and card state.
  *
  * @param {ArrayBuffer} imageArrayBuffer Portrait PNG; any existing card chunks are dropped
- * @param {Object} cardData Current card state
+ * @param {Object} cardData Snapshot of the card to serialize
  * @returns {Promise<ArrayBuffer>}
  */
 export async function buildCardPng(imageArrayBuffer, cardData) {
@@ -446,7 +440,7 @@ export async function buildCardPng(imageArrayBuffer, cardData) {
 /**
  * Byte size of the tEXt chunk buildCardPng embeds for this card, computed without assembling the PNG.
  *
- * @param {Object} cardData Current card state
+ * @param {Object} cardData Snapshot of the card to serialize
  * @returns {number}
  */
 export function cardDataChunkBytes(cardData, now = nowSeconds()) {

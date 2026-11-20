@@ -60,8 +60,8 @@ async function normalizePngBlob(blob) {
  * @param {string|undefined} options.mainIconUrl Resolved URL of the V3 main icon asset, if any
  * @returns {{
  *   applyCompression: Function,
+ *   exportBytes: number|null,
  *   handlePortraitUpload: Function,
- *   portraitBytes: number|null,
  *   portraitSource: string,
  *   resetPortrait: Function
  * }}
@@ -69,8 +69,8 @@ async function normalizePngBlob(blob) {
 export default function usePortraitPipeline({ file, mainIconUrl }) {
     const { setMainIcon } = useAssets();
     const { notify } = useNotifications();
-    const [preview, setPreview] = useState(default_avatar);
-    const [portraitBytes, setPortraitBytes] = useState(null);
+    const [cachedPortrait, setCachedPortrait] = useState(default_avatar);
+    const [exportBytes, setExportBytes] = useState(null);
 
     const updateMainIcon = useCallback(async (dataUrl) => {
         const blob = await dataUrlToBlob(dataUrl);
@@ -79,7 +79,7 @@ export default function usePortraitPipeline({ file, mainIconUrl }) {
     }, [setMainIcon]);
 
     const rememberPortrait = useCallback(async (dataUrl) => {
-        setPreview(dataUrl);
+        setCachedPortrait(dataUrl);
         persistPortrait(dataUrl);
         try {
             await updateMainIcon(dataUrl);
@@ -89,7 +89,7 @@ export default function usePortraitPipeline({ file, mainIconUrl }) {
     }, [updateMainIcon]);
 
     const resetPortrait = useCallback(() => {
-        setPreview(default_avatar);
+        setCachedPortrait(default_avatar);
         persistPortrait(default_avatar);
     }, []);
 
@@ -101,7 +101,7 @@ export default function usePortraitPipeline({ file, mainIconUrl }) {
     // has one) replaces it once assets finish hydrating.
     useEffect(() => {
         const stored = localStorage.getItem(PORTRAIT_STORAGE_KEY);
-        if (stored) setPreview(stored);
+        if (stored) setCachedPortrait(stored);
     }, []);
 
     // A PNG card carries its own portrait. Strip the card chunks before caching the image, and
@@ -110,7 +110,7 @@ export default function usePortraitPipeline({ file, mainIconUrl }) {
         let cancelled = false;
         if (!file) return undefined;
         if (!/.+\.png$/i.test(file.name)) {
-            if (typeof file.size === 'number') setPreview(default_avatar);
+            if (typeof file.size === 'number') setCachedPortrait(default_avatar);
             return undefined;
         }
 
@@ -120,7 +120,7 @@ export default function usePortraitPipeline({ file, mainIconUrl }) {
                 const stripped = await stripPngChunks(inputBuffer, ['ccv3', 'chara']);
                 const dataUrl = await bufferToDataUrl(stripped);
                 if (!cancelled) {
-                    setPreview(dataUrl);
+                    setCachedPortrait(dataUrl);
                     persistPortrait(dataUrl);
                 }
             } catch (error) {
@@ -169,22 +169,28 @@ export default function usePortraitPipeline({ file, mainIconUrl }) {
         notify({ title: 'Unsupported portrait', severity: 'error', message: 'Choose an image file.' });
     }, [notify, rememberPortrait]);
 
-    const portraitSource = mainIconUrl || preview;
+    const portraitSource = mainIconUrl || cachedPortrait;
 
-    // The footer shows the exported PNG size, so measure exactly what an export would embed.
+    // The footer reports the size of the PNG that would be exported, so measure the portrait after
+    // stripping every text chunk rather than only the two card keywords.
     useEffect(() => {
-        let cancelled = false;
-        imageSourceToPngArrayBuffer(portraitSource)
-            .then(stripPngChunks)
-            .then((stripped) => { if (!cancelled) setPortraitBytes(stripped.byteLength); })
-            .catch(() => { if (!cancelled) setPortraitBytes(null); });
-        return () => { cancelled = true; };
+        let alive = true;
+        (async () => {
+            try {
+                const buffer = await imageSourceToPngArrayBuffer(portraitSource);
+                const cleaned = await stripPngChunks(buffer);
+                if (alive) setExportBytes(cleaned.byteLength);
+            } catch {
+                if (alive) setExportBytes(null);
+            }
+        })();
+        return () => { alive = false; };
     }, [portraitSource]);
 
     return {
         applyCompression,
+        exportBytes,
         handlePortraitUpload,
-        portraitBytes,
         portraitSource,
         resetPortrait,
     };

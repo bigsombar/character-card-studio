@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import debounce from 'lodash.debounce';
 
 import { CardContext } from './cardContext';
@@ -8,6 +8,13 @@ import { saveProject } from '../storage/projectStore';
 
 export const CardProvider = ({children}) => {
     const [cardData, setCardData] = useState(createNewCard);
+    // Patch only the `data` payload; the spec header and unknown top-level keys stay untouched.
+    const patchCardData = useCallback((patch) => {
+        setCardData((prev) => {
+            const resolved = typeof patch === 'function' ? patch(prev) : patch;
+            return { ...prev, data: { ...prev.data, ...resolved } };
+        });
+    }, [setCardData]);
     const [isHydrating, setIsHydrating] = useState(true);
     const [initialWarnings, setInitialWarnings] = useState([]);
     const [saveState, setSaveState] = useState({status: 'idle', lastSavedAt: null, error: null});
@@ -55,7 +62,7 @@ export const CardProvider = ({children}) => {
     }, [debouncedSave]);
 
     return(
-        <CardContext.Provider value={{ cardData, setCardData, isHydrating, initialWarnings, saveState }}>
+        <CardContext.Provider value={{ cardData, setCardData, patchCardData, isHydrating, initialWarnings, saveState }}>
             {children}
         </CardContext.Provider>
     );

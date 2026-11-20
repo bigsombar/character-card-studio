@@ -61,7 +61,7 @@ const SECTION_COMPONENTS = {
 const PORTRAITLESS_SECTIONS = new Set([4, 5]);
 
 const TavernCardEditor = ({ activeSection = 0 }) => {
-    const { cardData, setCardData, initialWarnings, isHydrating } = useCard();
+    const { cardData, patchCardData, setCardData, initialWarnings, isHydrating } = useCard();
     const { clearAllAssets, ensureMainIcon, ingestCardAssets } = useAssets();
     const { notify } = useNotifications();
     const { progress: exportProgress } = useExport();
@@ -72,9 +72,9 @@ const TavernCardEditor = ({ activeSection = 0 }) => {
     const initialFileNameSet = useRef(false);
     const initialWarningsShown = useRef(false);
 
-    const [deleteConfirmation, setDeleteConfirmation] = useState(false);
-    const [displayImage, setDisplayImage] = useState(true);
-    const showPortraitPanel = displayImage && !PORTRAITLESS_SECTIONS.has(activeSection);
+    const [confirmClear, setConfirmClear] = useState(false);
+    const [portraitVisible, setPortraitVisible] = useState(true);
+    const showPortraitPanel = portraitVisible && !PORTRAITLESS_SECTIONS.has(activeSection);
     const [file, setFile] = useState(null);
     const [importProgress, setImportProgress] = useState(null);
     const [linkedMediaPromptOpen, setLinkedMediaPromptOpen] = useState(false);
@@ -86,8 +86,8 @@ const TavernCardEditor = ({ activeSection = 0 }) => {
     const { url: mainIconUrl } = useAssetUrl(mainIconAsset?.uri);
     const {
         applyCompression,
+        exportBytes,
         handlePortraitUpload,
-        portraitBytes,
         portraitSource,
         resetPortrait,
     } = usePortraitPipeline({ file, mainIconUrl });
@@ -116,19 +116,19 @@ const TavernCardEditor = ({ activeSection = 0 }) => {
     } = useCardOverwrite({ onApplied: maybePromptForLinkedMedia });
 
     const loadCardIntoState = async (parsedCardData, importMeta = {}) => {
-        const result = normalizeCardData(parsedCardData);
-        if (!result.ok) {
+        const check = normalizeCardData(parsedCardData);
+        if (!check.ok) {
             notify({
                 title: 'Import failed',
                 severity: 'error',
-                message: result.error,
-                errors: result.errors,
-                warnings: result.warnings,
+                message: check.error,
+                errors: check.errors,
+                warnings: check.warnings,
             });
             return false;
         }
 
-        let cardDataToLoad = result.cardData;
+        let cardDataToLoad = check.cardData;
         try {
             cardDataToLoad = await ingestCardAssets(cardDataToLoad);
         } catch (error) {
@@ -154,7 +154,7 @@ const TavernCardEditor = ({ activeSection = 0 }) => {
         setCardData(cardDataToLoad);
         maybePromptForLinkedMedia(cardDataToLoad);
 
-        const warnings = [...(importMeta.warnings ?? []), ...(result.warnings ?? [])];
+        const warnings = [...(importMeta.warnings ?? []), ...(check.warnings ?? [])];
         if (warnings.length > 0) {
             notify({
                 title: 'Card imported with warnings',
@@ -167,12 +167,7 @@ const TavernCardEditor = ({ activeSection = 0 }) => {
         return true;
     };
 
-    const handleLorebookImportLogic = (newLorebook) => {
-        setCardData((prevState) => ({
-            ...prevState,
-            data: { ...prevState.data, character_book: newLorebook },
-        }));
-    };
+    const applyLorebook = (lorebook) => patchCardData({ character_book: lorebook });
 
     async function handleFileSelect(event, importLorebook = false) {
         const selectedFile = event.target.files?.[0];
@@ -224,7 +219,7 @@ const TavernCardEditor = ({ activeSection = 0 }) => {
                     });
                     return;
                 }
-                handleLorebookImportLogic(normalizeLorebook(lorebookSource));
+                applyLorebook(normalizeLorebook(lorebookSource));
                 return;
             }
 
@@ -263,7 +258,7 @@ const TavernCardEditor = ({ activeSection = 0 }) => {
                         });
                         return;
                     }
-                    handleLorebookImportLogic(lorebook);
+                    applyLorebook(lorebook);
                     return;
                 }
                 await loadCardIntoState(imported.card, {
@@ -300,7 +295,7 @@ const TavernCardEditor = ({ activeSection = 0 }) => {
                     });
                     return;
                 }
-                handleLorebookImportLogic(normalizeLorebook(lorebookSource));
+                applyLorebook(normalizeLorebook(lorebookSource));
                 return;
             }
 
@@ -331,7 +326,7 @@ const TavernCardEditor = ({ activeSection = 0 }) => {
             console.warn('Could not clear asset storage:', error);
         }
         setFile(null);
-        setDeleteConfirmation(false);
+        setConfirmClear(false);
         resetPortrait();
         setCardData(newCard);
     };
@@ -355,10 +350,10 @@ const TavernCardEditor = ({ activeSection = 0 }) => {
         }
     }, [initialWarnings, isHydrating, notify]);
 
-    // Re-serializing the whole card on every keystroke commit is cheap but not free with a big
-    // lorebook, so let React schedule it at low priority.
-    const deferredCardData = useDeferredValue(cardData);
-    const cardDataBytes = useMemo(() => cardDataChunkBytes(deferredCardData), [deferredCardData]);
+    // Serializing the full card on each keystroke is not free with large lorebooks, so the size
+    // estimate below trails the editor at low priority instead of running synchronously.
+    const deferredCard = useDeferredValue(cardData);
+    const cardChunkEstimate = useMemo(() => cardDataChunkBytes(deferredCard), [deferredCard]);
     const statusMessage = importProgress?.message ?? exportProgress?.message;
 
     // The file strip belongs to the portrait column, so it no longer stretches across the empty
@@ -388,7 +383,7 @@ const TavernCardEditor = ({ activeSection = 0 }) => {
                     displayDeleteButton
                     file={file}
                     fileChange={handleFileSelect}
-                    handleRemoveFile={() => setDeleteConfirmation(true)}
+                    handleRemoveFile={() => setConfirmClear(true)}
                 />
                 {isHydrating && <Typography color="text.secondary" variant="caption">Loading project…</Typography>}
             </Stack>
@@ -408,7 +403,7 @@ const TavernCardEditor = ({ activeSection = 0 }) => {
             )}
             {!PORTRAITLESS_SECTIONS.has(activeSection) && (
                 <FormControlLabel
-                    control={<Checkbox checked={displayImage} onChange={() => setDisplayImage(!displayImage)} size="small" />}
+                    control={<Checkbox checked={portraitVisible} onChange={() => setPortraitVisible(!portraitVisible)} size="small" />}
                     label="Show portrait"
                     sx={{ mr: 0, whiteSpace: 'nowrap' }}
                 />
@@ -477,14 +472,14 @@ const TavernCardEditor = ({ activeSection = 0 }) => {
                 />
             </Suspense>
             <ConfirmationDialog
-                dialogContent="Are you sure you want to clear all fields? This action cannot be undone."
+                dialogContent="This wipes every field of the card. There is no undo — export first if unsure."
                 dialogTitle="Clear all fields?"
-                handleClose={() => setDeleteConfirmation(false)}
+                handleClose={() => setConfirmClear(false)}
                 handleConfirm={handleRemoveFile}
-                open={deleteConfirmation}
+                open={confirmClear}
             />
             <ConfirmationDialog
-                dialogContent="Are you sure you want to overwrite the current fields with this JSON? This action cannot be undone."
+                dialogContent="The JSON you picked will replace all current fields. Export the card first if you might need the old one."
                 dialogTitle="Overwrite the current card?"
                 handleClose={cancelOverwrite}
                 handleConfirm={confirmOverwrite}
@@ -531,11 +526,11 @@ const TavernCardEditor = ({ activeSection = 0 }) => {
                                 fileName={file ? file.name : 'Uploaded portrait'}
                                 onCompress={() => setCompressDialogOpen(true)}
                                 onUpload={handlePortraitUpload}
-                                sizeHint={activeSection === 0 && portraitBytes !== null
-                                    ? `Portrait ${formatBytes(portraitBytes)} + card data ${formatBytes(cardDataBytes)}`
+                                sizeHint={activeSection === 0 && exportBytes !== null
+                                    ? `Portrait ${formatBytes(exportBytes)} + card data ${formatBytes(cardChunkEstimate)}`
                                     : undefined}
-                                sizeLabel={activeSection === 0 && portraitBytes !== null
-                                    ? `PNG size: ${formatBytes(portraitBytes + cardDataBytes)}`
+                                sizeLabel={activeSection === 0 && exportBytes !== null
+                                    ? `PNG size: ${formatBytes(exportBytes + cardChunkEstimate)}`
                                     : undefined}
                             />
                         </Box>
