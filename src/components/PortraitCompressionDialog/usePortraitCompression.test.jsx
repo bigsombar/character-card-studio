@@ -79,7 +79,7 @@ describe('usePortraitCompression', () => {
 
         act(() => result.current.selectTarget(1));
 
-        // The old result is dropped immediately, so Apply cannot use a stale preview.
+        // There is no previous result yet, so the dialog falls back to the original preview.
         expect(result.current.busy).toBe(true);
         expect(result.current.result).toBeNull();
 
@@ -87,6 +87,36 @@ describe('usePortraitCompression', () => {
         expect(compressPortraitToTarget).toHaveBeenCalledWith(original.dataUrl, 1);
         expect(compressPortraitToTarget).toHaveBeenCalledTimes(1);
         expect(result.current.busy).toBe(false);
+    });
+
+    test('keeps the previous preview visible while another target is resizing', async () => {
+        const original = portrait(3000, 2000, 500000, 'data:original');
+        const compressedOne = portrait(1232, 816, 80000, 'data:1mp');
+        const compressedTwo = portrait(1728, 1152, 160000, 'data:2mp');
+        readPortraitInfo.mockImplementation(async (source) => {
+            if (source === 'data:original') return original;
+            if (source.includes('2mp')) return compressedTwo;
+            return compressedOne;
+        });
+        compressPortraitToTarget.mockResolvedValue(compressedFile('1mp.png'));
+
+        const { result } = renderHook(() => usePortraitCompression({ open: true, source: 'data:original' }));
+        await waitFor(() => expect(result.current.original).toEqual(original));
+        act(() => result.current.selectTarget(1));
+        await waitFor(() => expect(result.current.result).toEqual(compressedOne));
+
+        const pending = deferred();
+        compressPortraitToTarget.mockReturnValue(pending.promise);
+        act(() => result.current.selectTarget(2));
+
+        expect(result.current.busy).toBe(true);
+        expect(result.current.result).toEqual(compressedOne);
+
+        await act(async () => {
+            pending.resolve(compressedFile('2mp.png'));
+            await pending.promise;
+        });
+        await waitFor(() => expect(result.current.result).toEqual(compressedTwo));
     });
 
     test('returns to the untouched original when "Original" is selected again', async () => {

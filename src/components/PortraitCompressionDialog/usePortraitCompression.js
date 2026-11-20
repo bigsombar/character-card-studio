@@ -33,7 +33,9 @@ function reducer(state, action) {
                 ...state,
                 busy: action.value !== ORIGINAL_TARGET,
                 error: null,
-                result: null,
+                // Keep the previous preview while the new size is being produced. The Apply button
+                // is disabled by `busy`, and replacing the image with a spinner would make the
+                // dialog flash on every target change.
                 target: action.value,
             };
         case 'start-compression':

@@ -50,7 +50,10 @@ function PortraitSizePicker({ onSelect, presets, target }) {
  * Preview and spinner. The image fills the frame and uses `object-fit: contain`, so the whole
  * portrait stays visible with letterboxing instead of being cropped.
  */
-function PortraitPreview({ busy, error, result }) {
+function PortraitPreview({ busy, error, original, result }) {
+    // The first resize has no previous result yet, so the original stays visible underneath the
+    // spinner instead of leaving an empty hole for a frame.
+    const preview = result ?? (busy ? original : null);
     const showSpinner = busy || (!result && !error);
 
     return (
@@ -64,11 +67,11 @@ function PortraitPreview({ busy, error, result }) {
                 width: "100%",
             }}
         >
-            {result && (
+            {preview && (
                 <Box
                     alt="Portrait preview at the chosen size"
                     component="img"
-                    src={result.dataUrl}
+                    src={preview.dataUrl}
                     sx={{
                         display: "block",
                         height: "100%",
@@ -144,20 +147,23 @@ const PortraitCompressionDialog = ({ open, source, onClose, onApply }) => {
                     </Typography>
                 )}
                 {error && <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>}
-                <PortraitPreview busy={busy} error={error} result={result} />
+                <PortraitPreview busy={busy} error={error} original={original} result={result} />
             </DialogContent>
             <DialogActions
                 sx={{
-                    alignItems: "center",
-                    flexWrap: "wrap",
+                    alignItems: "stretch",
+                    flexDirection: "column",
                     gap: 1,
-                    justifyContent: "space-between",
                     px: 3,
                     pb: 2,
                 }}
             >
-                <PortraitSizeSummary original={original} result={result} />
-                <Stack direction="row" spacing={1} sx={{ ml: "auto" }}>
+                {/* Reserve the two-line height so a longer before/after string cannot resize the
+                    dialog or push the action buttons to another row. */}
+                <Box sx={{ alignItems: "center", display: "flex", minHeight: 44 }}>
+                    <PortraitSizeSummary original={original} result={result} />
+                </Box>
+                <Stack direction="row" spacing={1} sx={{ justifyContent: "flex-end", width: "100%" }}>
                     <Button onClick={onClose} variant="outlined">Cancel</Button>
                     <Button disabled={busy || !result} onClick={() => onApply(result.dataUrl)} variant="contained">Apply</Button>
                 </Stack>
