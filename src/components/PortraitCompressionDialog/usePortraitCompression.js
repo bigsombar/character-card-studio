@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useReducer, useRef } from 'react';
 import imageCompression from 'browser-image-compression';
 
-import { compressPortraitToTarget, readPortraitInfo } from './portraitCompression';
+import { compressPortraitToTarget, readPortraitInfo, targetDimensions } from './portraitCompression';
 
 export const PORTRAIT_MP_PRESETS = [2, 1.5, 1, 0.5];
 export const ORIGINAL_TARGET = 'original';
@@ -138,11 +138,17 @@ export default function usePortraitCompression({ open, source }) {
         };
     }, [open, state.target, state.original]);
 
-    const sourcePixels = state.original ? state.original.width * state.original.height : 0;
-    const presets = useMemo(
-        () => PORTRAIT_MP_PRESETS.filter((megapixels) => megapixels * 1_000_000 < sourcePixels),
-        [sourcePixels],
-    );
+    // Compare the already-rounded dimensions: a target close to the source area can snap back
+    // to the same 16 px grid, and offering it would suggest a resize that changes nothing.
+    const presets = useMemo(() => {
+        if (!state.original) return [];
+        return PORTRAIT_MP_PRESETS.filter((megapixels) => {
+            const target = targetDimensions(state.original.width, state.original.height, megapixels);
+            return target.width <= state.original.width
+                && target.height <= state.original.height
+                && (target.width < state.original.width || target.height < state.original.height);
+        });
+    }, [state.original]);
 
     const selectTarget = useCallback((value) => {
         // ToggleButtonGroup reports null when the active button is clicked again; the reducer

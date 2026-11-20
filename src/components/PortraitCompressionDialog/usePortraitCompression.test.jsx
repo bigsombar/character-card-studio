@@ -66,6 +66,18 @@ describe('usePortraitCompression', () => {
         expect(small.result.current.presets).toEqual([0.5]);
     });
 
+    test('hides presets that round back to the same dimensions', async () => {
+        readPortraitInfo.mockResolvedValue(portrait(560, 896));
+        const same = renderHook(() => usePortraitCompression({ open: true, source: 'data:same' }));
+        await waitFor(() => expect(same.result.current.original).not.toBeNull());
+        expect(same.result.current.presets).toEqual([]);
+
+        readPortraitInfo.mockResolvedValue(portrait(1232, 816));
+        const almostOne = renderHook(() => usePortraitCompression({ open: true, source: 'data:almost-one' }));
+        await waitFor(() => expect(almostOne.result.current.original).not.toBeNull());
+        expect(almostOne.result.current.presets).toEqual([0.5]);
+    });
+
     test('compresses from the original source for the selected megapixels', async () => {
         const original = portrait(3000, 2000, 500000, 'data:original');
         const compressed = portrait(1232, 816, 80000, 'data:compressed');

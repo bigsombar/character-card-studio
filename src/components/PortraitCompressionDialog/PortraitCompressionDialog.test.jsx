@@ -92,6 +92,15 @@ describe('PortraitCompressionDialog', () => {
         expect(screen.queryByRole('button', { name: '2 MP' })).not.toBeInTheDocument();
     });
 
+    test('does not offer a target that would keep the same dimensions', async () => {
+        readPortraitInfo.mockResolvedValue({ bytes: 982000, dataUrl: 'data:same', height: 896, width: 560 });
+
+        renderDialog({ source: 'data:same' });
+
+        expect(await screen.findByText(/already small enough/)).toBeInTheDocument();
+        expect(screen.queryByRole('button', { name: '0.5 MP' })).not.toBeInTheDocument();
+    });
+
     test('explains when the portrait is already small enough', async () => {
         readPortraitInfo.mockResolvedValue({ bytes: 5000, dataUrl: 'data:tiny', height: 480, width: 360 });
 
