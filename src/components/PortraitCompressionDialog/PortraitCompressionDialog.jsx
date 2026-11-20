@@ -81,7 +81,12 @@ function PortraitPreview({ busy, error, original, result }) {
                     }}
                 />
             )}
-            {showSpinner && <CircularProgress sx={{ left: "50%", position: "absolute", top: "50%", translate: "-50% -50%" }} />}
+            {showSpinner && (
+                <CircularProgress
+                    aria-label="Preparing portrait preview"
+                    sx={{ left: "50%", position: "absolute", top: "50%", translate: "-50% -50%" }}
+                />
+            )}
         </Box>
     );
 }

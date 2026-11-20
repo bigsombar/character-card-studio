@@ -154,7 +154,7 @@ export default function AssetsPanel() {
                 </Typography>
             )}
 
-            {busy && <LinearProgress sx={{mb: 2}} />}
+            {busy && <LinearProgress aria-label="Loading assets" sx={{mb: 2}} />}
             {notice && <Alert onClose={() => setNotice(null)} severity={notice.severity} sx={{mb: 2}}>{notice.message}</Alert>}
 
             {visibleAssets.length === 0 ? (

@@ -575,7 +575,7 @@ const TavernCardEditor = ({ activeSection = 0 }) => {
                                     title={activeSectionMeta.label}
                                 />
                             )}
-                            <Suspense fallback={<LinearProgress sx={{ mt: 2 }} />}>
+                            <Suspense fallback={<LinearProgress aria-label="Loading section" sx={{ mt: 2 }} />}>
                                 <SectionComponent
                                     {...(activeSection === 4 ? {
                                         onImportFile: (event) => handleFileSelect(event, true),

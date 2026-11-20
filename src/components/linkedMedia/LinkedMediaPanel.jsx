@@ -537,6 +537,7 @@ export default function LinkedMediaPanel({compact = false, showDescription = tru
                                 </Typography>
                                 {state === 'downloading' && (
                                     <LinearProgress
+                                        aria-label="File download progress"
                                         sx={{borderRadius: 1, height: 4, mt: 0.75}}
                                         value={status.progress ?? 0}
                                         variant={status.total ? 'determinate' : 'indeterminate'}
@@ -574,7 +575,7 @@ export default function LinkedMediaPanel({compact = false, showDescription = tru
                                     </Typography>
                                 )}
                             </Box>
-                            {state === 'downloading' && <CircularProgress size={18} sx={{mt: 0.4}} />}
+                            {state === 'downloading' && <CircularProgress aria-label="Downloading media" size={18} sx={{mt: 0.4}} />}
                             {(state === 'done' || state === 'exists') && (
                                 <CheckCircleOutlineRounded color="success" fontSize="small" sx={{mt: 0.4}} />
                             )}

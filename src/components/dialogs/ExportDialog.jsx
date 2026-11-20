@@ -161,6 +161,7 @@ export default function ExportDialog({ cardData, exporting, onClose, onExport, o
                 {exporting && (
                     <Box sx={{ mt: 2 }}>
                         <LinearProgress
+                            aria-label="Export progress"
                             value={determinate ? Math.round((progress.current / progress.total) * 100) : undefined}
                             variant={determinate ? 'determinate' : 'indeterminate'}
                         />
