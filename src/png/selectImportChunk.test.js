@@ -49,8 +49,8 @@ describe('card chunk selection', () => {
     });
 
     test('returns a single available chunk', () => {
-        const chunk = makeChunk('chara', { entryCount: 0 });
-        expect(selectPreferredCardChunk([chunk])).toBe(chunk);
+        const candidate = makeChunk('chara', { entryCount: 0 });
+        expect(selectPreferredCardChunk([candidate])).toBe(candidate);
     });
 
     describe('keyword precedence', () => {

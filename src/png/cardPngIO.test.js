@@ -50,9 +50,9 @@ describe('stripping card chunks', () => {
     test('returns an image without tEXt chunks byte-for-byte', async () => {
         const original = createBlankPng();
 
-        const stripped = await stripPngChunks(original);
+        const cleaned = await stripPngChunks(original);
 
-        expect(new Uint8Array(stripped)).toEqual(new Uint8Array(original));
+        expect(Array.from(cleaned)).toEqual(Array.from(original));
     });
 
     test('removes tEXt chunks but keeps every image chunk', async () => {
@@ -60,10 +60,10 @@ describe('stripping card chunks', () => {
         const withText = await assembleNewPng(original, [cardTextChunk('chara', { hello: 'world' })]);
         expect(chunkTypes(withText)).toContain('tEXt');
 
-        const stripped = await stripPngChunks(withText);
+        const cleaned = await stripPngChunks(withText);
 
-        expect(chunkTypes(stripped)).not.toContain('tEXt');
-        expect(chunkTypes(stripped)).toEqual(chunkTypes(original));
+        expect(chunkTypes(cleaned)).not.toContain('tEXt');
+        expect(chunkTypes(cleaned)).toEqual(chunkTypes(original));
     });
 
     test('removes only the requested card keywords', async () => {

@@ -112,39 +112,33 @@ export function insertChunkBeforeIend(png, chunk) {
     return concat(parts).buffer;
 }
 
-export function chunkTypes(png) {
-    const bytes = new Uint8Array(png);
+function walkChunks(png, visit) {
+    const bytes = png instanceof Uint8Array ? png : new Uint8Array(png);
     const view = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
-    const types = [];
-    let offset = 8;
+    let pos = 8;
 
-    while (offset + 8 <= bytes.length) {
-        const length = view.getUint32(offset);
-        types.push(String.fromCharCode(bytes[offset + 4], bytes[offset + 5], bytes[offset + 6], bytes[offset + 7]));
-        offset += 12 + length;
+    while (pos + 8 <= bytes.byteLength) {
+        const size = view.getUint32(pos);
+        const kind = String.fromCharCode(bytes[pos + 4], bytes[pos + 5], bytes[pos + 6], bytes[pos + 7]);
+        visit(kind, bytes.subarray(pos + 8, pos + 8 + size));
+        pos += 12 + size;
     }
+}
 
-    return types;
+export function chunkTypes(png) {
+    const out = [];
+    walkChunks(png, (kind) => out.push(kind));
+    return out;
 }
 
 export function textKeywords(png) {
-    const bytes = new Uint8Array(png);
-    const view = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
-    const keywords = [];
-    let offset = 8;
-
-    while (offset + 8 <= bytes.length) {
-        const length = view.getUint32(offset);
-        const type = String.fromCharCode(bytes[offset + 4], bytes[offset + 5], bytes[offset + 6], bytes[offset + 7]);
-        if (type === 'tEXt') {
-            const payload = bytes.subarray(offset + 8, offset + 8 + length);
-            const separator = payload.indexOf(0);
-            keywords.push(new TextDecoder().decode(separator === -1 ? payload : payload.subarray(0, separator)));
-        }
-        offset += 12 + length;
-    }
-
-    return keywords;
+    const found = [];
+    walkChunks(png, (kind, payload) => {
+        if (kind !== 'tEXt') return;
+        const cut = payload.indexOf(0);
+        found.push(new TextDecoder().decode(cut === -1 ? payload : payload.subarray(0, cut)));
+    });
+    return found;
 }
 
 export function pngBase64(png) {

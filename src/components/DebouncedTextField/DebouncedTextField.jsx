@@ -142,7 +142,21 @@ const DebouncedTextField = ({label, helpKey, name, onChange, value, debounceMs =
         htmlInputSlot.onBlur = wrapHandler(htmlInputSlot.onBlur, syncSelectionState);
     }
 
-    const mergedSlotProps = {
+    // Labels always sit above the field as a static caption instead of floating in and out of
+    // the border, while callers can still override any other label prop.
+    const labelProps = {
+        shrink: true,
+        ...slotProps?.inputLabel,
+    };
+
+    // The character counter is pinned to the right edge; its margins stay in place even when a
+    // caller adds its own helper-text styling.
+    const countProps = showCount ? {
+        ...slotProps?.formHelperText,
+        style: { margin: 0, textAlign: 'right', ...slotProps?.formHelperText?.style },
+    } : null;
+
+    const fieldSlotProps = {
         ...slotProps,
         htmlInput: htmlInputSlot,
         ...(highlightMacros && multiline ? {
@@ -153,18 +167,8 @@ const DebouncedTextField = ({label, helpKey, name, onChange, value, debounceMs =
                 ),
             },
         } : {}),
-        // Labels always sit above the field, as a static caption, rather than floating
-        // in/out of the border on focus.
-        inputLabel: {
-            shrink: true,
-            ...(slotProps?.inputLabel ?? {}),
-        },
-        ...(showCount ? {
-            formHelperText: {
-                style: {textAlign: 'right', margin: 0},
-                ...(slotProps?.formHelperText ?? {}),
-            },
-        } : {}),
+        inputLabel: labelProps,
+        ...(countProps ? { formHelperText: countProps } : {}),
     };
 
     return(
@@ -180,7 +184,7 @@ const DebouncedTextField = ({label, helpKey, name, onChange, value, debounceMs =
                 multiline={multiline}
                 name={name}
                 onChange={handleChange}
-                slotProps={mergedSlotProps}
+                slotProps={fieldSlotProps}
                 sx={{
                     mt: 0.5,
                     ...(highlightMacros && multiline ? {
