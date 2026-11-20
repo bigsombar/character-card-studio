@@ -17,7 +17,7 @@ function setup(initialCard = makeCard()) {
     const onApplyCard = vi.fn();
     const setCardData = vi.fn();
     const view = (cardData) => (
-        <CardContext.Provider value={{ cardData, setCardData }}>
+        <CardContext.Provider value={{ cardData, patchCardData: vi.fn(), setCardData }}>
             <NotificationProvider>
                 <AdvancedSection onApplyCard={onApplyCard} />
             </NotificationProvider>

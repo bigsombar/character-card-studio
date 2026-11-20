@@ -47,7 +47,7 @@ function makeCard(entries = [makeEntry()]) {
 
 function renderSection(props = {}) {
     render(
-        <CardContext.Provider value={{ cardData: makeCard(), setCardData: vi.fn() }}>
+        <CardContext.Provider value={{ cardData: makeCard(), patchCardData: vi.fn(), setCardData: vi.fn() }}>
             <NotificationProvider>
                 <LorebookSection {...props} />
             </NotificationProvider>
@@ -89,6 +89,7 @@ describe('LorebookSection advanced JSON visibility', () => {
         render(
             <CardContext.Provider value={{
                 cardData: makeCard([makeEntry(), makeEntry({ content: 'Second entry', comment: 'Klee', name: 'Klee' })]),
+                patchCardData: vi.fn(),
                 setCardData: vi.fn(),
             }}>
                 <NotificationProvider>

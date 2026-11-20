@@ -46,17 +46,14 @@ const KIND_CONFIG = {
 /** Reorderable greeting list used by both alternate and group-only greetings. */
 export default function GreetingListEditor({ kind = 'alternate' }) {
     const config = KIND_CONFIG[kind];
-    const { cardData, setCardData } = useCard();
+    const { cardData, patchCardData } = useCard();
     const greetings = cardData.data[config.fieldName] ?? [];
     const [expanded, setExpanded] = useState([]);
     const [pendingDelete, setPendingDelete] = useState(-1);
     const [pendingPromote, setPendingPromote] = useState(-1);
 
     const updateGreetings = (nextGreetings) => {
-        setCardData((prevState) => ({
-            ...prevState,
-            data: { ...prevState.data, [config.fieldName]: nextGreetings },
-        }));
+        patchCardData({ [config.fieldName]: nextGreetings });
     };
 
     const handleAdd = () => {
@@ -104,14 +101,10 @@ export default function GreetingListEditor({ kind = 'alternate' }) {
         const nextGreetings = [...greetings];
         const [promoted] = nextGreetings.splice(pendingPromote, 1);
         nextGreetings.unshift(cardData.data.first_mes);
-        setCardData((prevState) => ({
-            ...prevState,
-            data: {
-                ...prevState.data,
-                first_mes: promoted,
-                [config.fieldName]: nextGreetings,
-            },
-        }));
+        patchCardData({
+            first_mes: promoted,
+            [config.fieldName]: nextGreetings,
+        });
         setPendingPromote(-1);
     };
 

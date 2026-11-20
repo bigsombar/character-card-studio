@@ -13,18 +13,14 @@ const LANGUAGE_CODE = /^[a-z]{0,2}$/;
  * Keys are lowercased ISO 639-1 codes; an empty map is stored as undefined.
  */
 export default function MultilingualNotesEditor() {
-    const { cardData, setCardData } = useCard();
+    const { cardData, patchCardData } = useCard();
     const notes = cardData.data.creator_notes_multilingual ?? {};
     const rows = Object.entries(notes);
 
     const commit = (nextNotes) => {
-        setCardData((prevState) => ({
-            ...prevState,
-            data: {
-                ...prevState.data,
-                creator_notes_multilingual: Object.keys(nextNotes).length > 0 ? nextNotes : undefined,
-            },
-        }));
+        patchCardData({
+            creator_notes_multilingual: Object.keys(nextNotes).length > 0 ? nextNotes : undefined,
+        });
     };
 
     const addRow = () => {

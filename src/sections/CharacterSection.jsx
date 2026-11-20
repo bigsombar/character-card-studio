@@ -11,14 +11,11 @@ const fieldGrid = {
 
 /** Core identity and voice fields: name, description, personality, scenario and greetings. */
 export default function CharacterSection() {
-    const { setCardData } = useCard();
+    const { patchCardData } = useCard();
 
     const handleChange = (event) => {
         const { name, value } = event.target;
-        setCardData((prevState) => ({
-            ...prevState,
-            data: { ...prevState.data, [name]: value },
-        }));
+        patchCardData({ [name]: value });
     };
 
     return (

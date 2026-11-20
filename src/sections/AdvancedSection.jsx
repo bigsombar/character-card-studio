@@ -55,7 +55,7 @@ function editorReducer(state, action) {
  * normalization escape hatch. Runtime decorators/CBS are intentionally never executed.
  */
 export default function AdvancedSection({ onApplyCard }) {
-    const { cardData, setCardData } = useCard();
+    const { cardData, patchCardData, setCardData } = useCard();
     const { notify } = useNotifications();
     const [editor, dispatch] = useReducer(editorReducer, cardData, (card) => ({
         ...EMPTY_EDITOR,
@@ -106,19 +106,19 @@ export default function AdvancedSection({ onApplyCard }) {
     };
 
     const handleNormalize = () => {
-        const result = normalizeCardData(cardData);
-        if (!result.ok) {
-            notify({ title: 'Normalization failed', severity: 'error', message: result.error, warnings: result.warnings });
+        const check = normalizeCardData(cardData);
+        if (!check.ok) {
+            notify({ title: 'Normalization failed', severity: 'error', message: check.error, warnings: check.warnings });
             return;
         }
-        setCardData(result.cardData);
+        setCardData(check.cardData);
         notify({
             title: 'Card normalized',
-            severity: result.warnings?.length ? 'warning' : 'success',
-            message: result.warnings?.length
+            severity: check.warnings?.length ? 'warning' : 'success',
+            message: check.warnings?.length
                 ? 'Defaults were applied and malformed fields were coerced.'
                 : 'Defaults were applied; no malformed fields were found.',
-            warnings: result.warnings,
+            warnings: check.warnings,
         });
     };
 
@@ -140,10 +140,7 @@ export default function AdvancedSection({ onApplyCard }) {
             <JsonObjectField
                 helpKey="extensions"
                 label="Card extensions (data.extensions)"
-                onApply={(extensions) => setCardData((prevState) => ({
-                    ...prevState,
-                    data: { ...prevState.data, extensions },
-                }))}
+                onApply={(extensions) => patchCardData({ extensions })}
                 rows={5}
                 value={cardData.data.extensions}
             />

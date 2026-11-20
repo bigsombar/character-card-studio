@@ -20,15 +20,12 @@ function formatUnixSeconds(seconds) {
 
 /** Creator metadata, publications notes, translations, tags and spec-managed dates. */
 export default function CreatorSection() {
-    const { cardData, setCardData } = useCard();
+    const { cardData, patchCardData } = useCard();
     const data = cardData.data;
 
     const handleChange = (event) => {
         const { name, value } = event.target;
-        setCardData((prevState) => ({
-            ...prevState,
-            data: { ...prevState.data, [name]: value },
-        }));
+        patchCardData({ [name]: value });
     };
 
     return (

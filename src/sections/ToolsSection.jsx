@@ -12,7 +12,7 @@ const ASTERISK_PATTERN = /\*(.+?)\*/g;
 
 /** Bulk text tools: asterisk cleanup and a deliberately simple find/replace. */
 export default function ToolsSection() {
-    const { setCardData } = useCard();
+    const { patchCardData } = useCard();
     const { notify } = useNotifications();
     const toFindRef = useRef(null);
     const toReplaceRef = useRef(null);
@@ -20,17 +20,13 @@ export default function ToolsSection() {
     const [pendingReplace, setPendingReplace] = useState(null);
 
     const purgeAsterisks = () => {
-        setCardData((prevState) => {
-            const data = prevState.data;
+        patchCardData((prev) => {
+            const data = prev.data;
             return {
-                ...prevState,
-                data: {
-                    ...data,
-                    first_mes: data.first_mes.replace(ASTERISK_PATTERN, '$1'),
-                    mes_example: data.mes_example.replace(ASTERISK_PATTERN, '$1'),
-                    alternate_greetings: data.alternate_greetings.map((greeting) => greeting.replace(ASTERISK_PATTERN, '$1')),
-                    group_only_greetings: data.group_only_greetings.map((greeting) => greeting.replace(ASTERISK_PATTERN, '$1')),
-                },
+                first_mes: data.first_mes.replace(ASTERISK_PATTERN, '$1'),
+                mes_example: data.mes_example.replace(ASTERISK_PATTERN, '$1'),
+                alternate_greetings: data.alternate_greetings.map((greeting) => greeting.replace(ASTERISK_PATTERN, '$1')),
+                group_only_greetings: data.group_only_greetings.map((greeting) => greeting.replace(ASTERISK_PATTERN, '$1')),
             };
         });
         setConfirmPurge(false);
@@ -50,20 +46,16 @@ export default function ToolsSection() {
     const applyReplace = () => {
         if (!pendingReplace) return;
         const [toFind, toReplace] = pendingReplace;
-        setCardData((prevState) => {
-            const data = prevState.data;
+        patchCardData((prev) => {
+            const data = prev.data;
             return {
-                ...prevState,
-                data: {
-                    ...data,
-                    description: data.description.replaceAll(toFind, toReplace),
-                    personality: data.personality.replaceAll(toFind, toReplace),
-                    scenario: data.scenario.replaceAll(toFind, toReplace),
-                    first_mes: data.first_mes.replaceAll(toFind, toReplace),
-                    mes_example: data.mes_example.replaceAll(toFind, toReplace),
-                    alternate_greetings: data.alternate_greetings.map((greeting) => greeting.replaceAll(toFind, toReplace)),
-                    group_only_greetings: data.group_only_greetings.map((greeting) => greeting.replaceAll(toFind, toReplace)),
-                },
+                description: data.description.replaceAll(toFind, toReplace),
+                personality: data.personality.replaceAll(toFind, toReplace),
+                scenario: data.scenario.replaceAll(toFind, toReplace),
+                first_mes: data.first_mes.replaceAll(toFind, toReplace),
+                mes_example: data.mes_example.replaceAll(toFind, toReplace),
+                alternate_greetings: data.alternate_greetings.map((greeting) => greeting.replaceAll(toFind, toReplace)),
+                group_only_greetings: data.group_only_greetings.map((greeting) => greeting.replaceAll(toFind, toReplace)),
             };
         });
         setPendingReplace(null);

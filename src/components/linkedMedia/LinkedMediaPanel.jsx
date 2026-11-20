@@ -65,7 +65,7 @@ function isReady(status) {
  * every text field with the resulting `embeded://` asset URIs.
  */
 export default function LinkedMediaPanel({compact = false, showDescription = true, allowProxies = true}) {
-    const {cardData, setCardData} = useCard();
+    const {cardData, patchCardData, setCardData} = useCard();
     const {addFile} = useAssets();
     const {notify} = useNotifications();
     const proxyConsent = useProxyConsent();
@@ -110,12 +110,8 @@ export default function LinkedMediaPanel({compact = false, showDescription = tru
                 return;
             }
             // Metadata survived but the blob did not. Drop the stale entry and fetch a fresh copy.
-            setCardData((previous) => ({
-                ...previous,
-                data: {
-                    ...previous.data,
-                    assets: (previous.data.assets ?? []).filter((asset) => asset.uri !== existingUri),
-                },
+            patchCardData((previous) => ({
+                assets: (previous.data.assets ?? []).filter((asset) => asset.uri !== existingUri),
             }));
         }
 
@@ -132,15 +128,11 @@ export default function LinkedMediaPanel({compact = false, showDescription = tru
         const reusable = (await listAssets()).find((record) => record.name === name);
         if (reusable) {
             const type = TYPE_BY_KIND[reusable.mediaKind] ?? 'other';
-            setCardData((previous) => {
+            patchCardData((previous) => {
                 const assets = previous.data.assets ?? [];
-                if (assets.some((asset) => asset.uri === reusable.uri)) return previous;
+                if (assets.some((asset) => asset.uri === reusable.uri)) return {};
                 return {
-                    ...previous,
-                    data: {
-                        ...previous.data,
-                        assets: [...assets, {type, uri: reusable.uri, name: reusable.name, ext: reusable.ext}],
-                    },
+                    assets: [...assets, {type, uri: reusable.uri, name: reusable.name, ext: reusable.ext}],
                 };
             });
             updateItem(reference.url, {
@@ -249,7 +241,7 @@ export default function LinkedMediaPanel({compact = false, showDescription = tru
             progress: 100,
             error: null,
         });
-    }, [addFile, localByUrl, proxiesActive, setCardData, updateItem]);
+    }, [addFile, localByUrl, patchCardData, proxiesActive, updateItem]);
 
     const startDownloads = useCallback(async (urls) => {
         if (running) return;

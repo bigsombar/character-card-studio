@@ -143,7 +143,7 @@ function EntryKeysField({ entryIndex, fieldName, label, value, onChange }) {
  * panel skipped: use_regex, position, id and per-entry extensions.
  */
 export default function LorebookSection({ onImportFile, showAdvancedJson = false }) {
-    const { cardData, setCardData } = useCard();
+    const { cardData, patchCardData } = useCard();
     const { notify } = useNotifications();
     const book = cardData.data.character_book;
     const [expanded, setExpanded] = useState([]);
@@ -163,13 +163,7 @@ export default function LorebookSection({ onImportFile, showAdvancedJson = false
     }, [book]);
 
     const updateBook = (updater) => {
-        setCardData((prevState) => ({
-            ...prevState,
-            data: {
-                ...prevState.data,
-                character_book: updater(prevState.data.character_book),
-            },
-        }));
+        patchCardData((prev) => ({ character_book: updater(prev.data.character_book) }));
     };
 
     const addLorebook = () => updateBook(() => v3CharacterBookPrototype());
@@ -183,10 +177,7 @@ export default function LorebookSection({ onImportFile, showAdvancedJson = false
     };
 
     const deleteBook = () => {
-        setCardData((prevState) => ({
-            ...prevState,
-            data: { ...prevState.data, character_book: undefined },
-        }));
+        patchCardData({ character_book: undefined });
         setConfirmDeleteBook(false);
     };
 

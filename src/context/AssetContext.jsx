@@ -41,7 +41,7 @@ function chooseFallbackMain(assets, type) {
 }
 
 export function AssetProvider({children}) {
-    const { cardData, setCardData } = useCard();
+    const { cardData, patchCardData } = useCard();
     const [assetVersion, setAssetVersion] = useState(0);
     const [busy, setBusy] = useState(false);
 
@@ -92,8 +92,8 @@ export function AssetProvider({children}) {
             setBusy(false);
         }
 
-        setCardData((prevState) => {
-            const previous = prevState.data.assets ?? [];
+        patchCardData((prev) => {
+            const previous = prev.data.assets ?? [];
             let nextAssets = [...previous, ...added.map((item) => item.metadata)];
             let hasMain = hasMainIcon(previous);
 
@@ -109,18 +109,12 @@ export function AssetProvider({children}) {
             nextAssets = chooseFallbackMain(nextAssets, 'icon');
             nextAssets = chooseFallbackMain(nextAssets, 'background');
 
-            return {
-                ...prevState,
-                data: {
-                    ...prevState.data,
-                    assets: nextAssets,
-                },
-            };
+            return { assets: nextAssets };
         });
 
         bumpVersion();
         return added.map((item) => item.metadata);
-    }, [cardData?.data?.assets, setCardData, bumpVersion]);
+    }, [cardData?.data?.assets, patchCardData, bumpVersion]);
 
     const addFile = useCallback(async (file, options = {}) => {
         const [asset] = await addFiles([file], [options]);
@@ -131,17 +125,11 @@ export function AssetProvider({children}) {
         const asset = (cardData?.data?.assets ?? []).find((item) => item.uri === uri);
         if (!asset) return;
 
-        setCardData((prevState) => {
-            let assets = (prevState.data.assets ?? []).filter((item) => item.uri !== uri);
+        patchCardData((prev) => {
+            let assets = (prev.data.assets ?? []).filter((item) => item.uri !== uri);
             assets = chooseFallbackMain(assets, 'icon');
             assets = chooseFallbackMain(assets, 'background');
-            return {
-                ...prevState,
-                data: {
-                    ...prevState.data,
-                    assets,
-                },
-            };
+            return { assets };
         });
 
         try {
@@ -149,7 +137,7 @@ export function AssetProvider({children}) {
         } finally {
             bumpVersion();
         }
-    }, [cardData?.data?.assets, setCardData, bumpVersion]);
+    }, [cardData?.data?.assets, patchCardData, bumpVersion]);
 
     const replaceAsset = useCallback(async (uri, file) => {
         const oldAsset = (cardData?.data?.assets ?? []).find((item) => item.uri === uri);
@@ -181,36 +169,24 @@ export function AssetProvider({children}) {
 
             if (newUri !== uri) await deleteStoredAsset(uri);
 
-            setCardData((prevState) => {
-                let assets = (prevState.data.assets ?? []).map((item) => (
+            patchCardData((prev) => {
+                let assets = (prev.data.assets ?? []).map((item) => (
                     item.uri === uri
                         ? {...item, uri: newUri, ext: validation.ext}
                         : item
                 ));
                 if (oldAsset.name === 'main') assets = applyMain(assets, newUri);
-                return {
-                    ...prevState,
-                    data: {
-                        ...prevState.data,
-                        assets,
-                    },
-                };
+                return { assets };
             });
         } finally {
             setBusy(false);
             bumpVersion();
         }
-    }, [cardData?.data?.assets, setCardData, bumpVersion]);
+    }, [cardData?.data?.assets, patchCardData, bumpVersion]);
 
     const setMain = useCallback((uri) => {
-        setCardData((prevState) => ({
-            ...prevState,
-            data: {
-                ...prevState.data,
-                assets: applyMain(prevState.data.assets ?? [], uri),
-            },
-        }));
-    }, [setCardData]);
+        patchCardData((prev) => ({ assets: applyMain(prev.data.assets ?? [], uri) }));
+    }, [patchCardData]);
 
     const setMainIcon = useCallback(async (file) => {
         const icon = (cardData?.data?.assets ?? []).find((asset) => asset.type === 'icon' && asset.name === 'main');
@@ -219,30 +195,23 @@ export function AssetProvider({children}) {
     }, [cardData?.data?.assets, replaceAsset, addFile]);
 
     const updateAssetMetadata = useCallback((uri, updates) => {
-        setCardData((prevState) => ({
-            ...prevState,
-            data: {
-                ...prevState.data,
-                assets: (prevState.data.assets ?? []).map((asset) => (
-                    asset.uri === uri ? {...asset, ...updates} : asset
-                )),
-            },
+        patchCardData((prev) => ({
+            assets: (prev.data.assets ?? []).map((asset) => (
+                asset.uri === uri ? {...asset, ...updates} : asset
+            )),
         }));
-    }, [setCardData]);
+    }, [patchCardData]);
 
     const clearAllAssets = useCallback(async () => {
         setBusy(true);
         try {
             await clearStoredAssets();
-            setCardData((prevState) => ({
-                ...prevState,
-                data: {...prevState.data, assets: undefined},
-            }));
+            patchCardData({ assets: undefined });
             bumpVersion();
         } finally {
             setBusy(false);
         }
-    }, [setCardData, bumpVersion]);
+    }, [patchCardData, bumpVersion]);
 
     /** Deletes IndexedDB blobs that are no longer referenced by the current card. */
     const cleanOrphanAssets = useCallback(async () => {

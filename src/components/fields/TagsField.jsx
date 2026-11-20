@@ -3,7 +3,7 @@ import DebouncedTextField from '../DebouncedTextField/DebouncedTextField';
 
 /** Comma-separated tag editor backed by the `tags: string[]` field. */
 export default function TagsField() {
-    const { cardData, setCardData } = useCard();
+    const { cardData, patchCardData } = useCard();
     const tags = cardData.data.tags ?? [];
 
     const handleChange = (event) => {
@@ -11,10 +11,7 @@ export default function TagsField() {
             .split(',')
             .map((tag) => tag.trim())
             .filter(Boolean);
-        setCardData((prevState) => ({
-            ...prevState,
-            data: { ...prevState.data, tags: nextTags },
-        }));
+        patchCardData({ tags: nextTags });
     };
 
     return (

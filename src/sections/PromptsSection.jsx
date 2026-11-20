@@ -5,14 +5,11 @@ import { useCard } from '../context/cardContext';
 
 /** Prompt overrides and post-history instructions. */
 export default function PromptsSection() {
-    const { setCardData } = useCard();
+    const { patchCardData } = useCard();
 
     const handleChange = (event) => {
         const { name, value } = event.target;
-        setCardData((prevState) => ({
-            ...prevState,
-            data: { ...prevState.data, [name]: value },
-        }));
+        patchCardData({ [name]: value });
     };
 
     return (
