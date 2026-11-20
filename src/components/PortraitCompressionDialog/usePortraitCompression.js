@@ -1,9 +1,10 @@
 import { useCallback, useEffect, useMemo, useReducer, useRef } from 'react';
 import imageCompression from 'browser-image-compression';
 
-import { compressPortraitToTarget, readPortraitInfo, targetDimensions } from './portraitCompression';
+import { MP_PRESETS, shrinksAt } from '../../utils/imageSizing';
+import { compressPortraitToTarget, readPortraitInfo } from './portraitCompression';
 
-export const PORTRAIT_MP_PRESETS = [2, 1.5, 1, 0.5];
+export const PORTRAIT_MP_PRESETS = MP_PRESETS;
 export const ORIGINAL_TARGET = 'original';
 
 const INITIAL_STATE = {
@@ -142,12 +143,9 @@ export default function usePortraitCompression({ open, source }) {
     // to the same 16 px grid, and offering it would suggest a resize that changes nothing.
     const presets = useMemo(() => {
         if (!state.original) return [];
-        return PORTRAIT_MP_PRESETS.filter((megapixels) => {
-            const target = targetDimensions(state.original.width, state.original.height, megapixels);
-            return target.width <= state.original.width
-                && target.height <= state.original.height
-                && (target.width < state.original.width || target.height < state.original.height);
-        });
+        return PORTRAIT_MP_PRESETS.filter((megapixels) => (
+            shrinksAt(state.original.width, state.original.height, megapixels)
+        ));
     }, [state.original]);
 
     const selectTarget = useCallback((value) => {

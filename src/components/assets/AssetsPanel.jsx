@@ -10,6 +10,7 @@ import {
     Typography,
 } from '@mui/material';
 import Add from '@mui/icons-material/Add';
+import Compress from '@mui/icons-material/Compress';
 import DeleteSweepOutlined from '@mui/icons-material/DeleteSweepOutlined';
 import ImageOutlined from '@mui/icons-material/ImageOutlined';
 import Search from '@mui/icons-material/Search';
@@ -24,6 +25,7 @@ import ConfirmationDialog from '../ConfirmationDialog/ConfirmationDialog';
 import AddAssetsDialog from './AddAssetsDialog';
 import AssetCard from './AssetCard';
 import AssetDetailsDialog from './AssetDetailsDialog';
+import CompressAssetsDialog from './CompressAssetsDialog';
 
 const FILTERS = [
     {value: 'all', label: 'All'},
@@ -34,11 +36,20 @@ const FILTERS = [
 
 export default function AssetsPanel() {
     const { cardData } = useCard();
-    const { assetVersion, busy, cleanOrphanAssets, deleteAsset, replaceAsset, setMain } = useAssets();
+    const {
+        assetVersion,
+        busy,
+        cleanOrphanAssets,
+        compressImageAssets,
+        deleteAsset,
+        replaceAsset,
+        setMain,
+    } = useAssets();
     const { notify } = useNotifications();
     const [filter, setFilter] = useState('all');
     const [search, setSearch] = useState('');
     const [addOpen, setAddOpen] = useState(false);
+    const [compressOpen, setCompressOpen] = useState(false);
     const [selectedUri, setSelectedUri] = useState(null);
     const [pendingDelete, setPendingDelete] = useState(null);
     const [pendingClean, setPendingClean] = useState(false);
@@ -93,6 +104,38 @@ export default function AssetsPanel() {
         }
     };
 
+    const handleCompressed = (result) => {
+        setCompressOpen(false);
+
+        const resized = result.resized.length;
+        const failed = result.failed.length;
+        const alreadySmall = result.skipped.filter((item) => item.reason === 'small').length;
+        const parts = [];
+
+        if (resized > 0) {
+            parts.push(`${resized} image${resized === 1 ? '' : 's'} resized`);
+            if (result.savedBytes > 0) parts.push(`${formatBytesShort(result.savedBytes)} freed`);
+        } else if (failed === 0) {
+            parts.push('No images needed resizing');
+        }
+        if (alreadySmall > 0) {
+            parts.push(
+                `${alreadySmall} image${alreadySmall === 1 ? ' was' : 's were'} already small enough`,
+            );
+        }
+        if (failed > 0) {
+            parts.push(`${failed} image${failed === 1 ? '' : 's'} could not be resized`);
+        }
+
+        notify({
+            title: resized > 0
+                ? 'Image assets compressed'
+                : failed > 0 ? 'Compression failed' : 'Nothing to compress',
+            severity: failed > 0 ? (resized > 0 ? 'warning' : 'error') : 'success',
+            message: `${parts.join('. ')}${parts.length > 0 ? '.' : ''}`,
+        });
+    };
+
     const handleCleanOrphans = async () => {
         try {
             const removed = await cleanOrphanAssets();
@@ -124,7 +167,7 @@ export default function AssetsPanel() {
                         />
                     ))}
                 </Box>
-                <Box sx={{alignItems: 'center', display: 'flex', gap: 1}}>
+                <Box sx={{alignItems: 'center', display: 'flex', flexWrap: 'wrap', gap: 1, justifyContent: 'flex-end'}}>
                     <TextField
                         onChange={(event) => setSearch(event.target.value)}
                         placeholder="Search assets"
@@ -140,6 +183,14 @@ export default function AssetsPanel() {
                     />
                     <Button onClick={() => setAddOpen(true)} startIcon={<Add />} variant="contained">
                         Add media
+                    </Button>
+                    <Button
+                        disabled={counts.image === 0}
+                        onClick={() => setCompressOpen(true)}
+                        startIcon={<Compress />}
+                        variant="outlined"
+                    >
+                        Compress images
                     </Button>
                     <Button onClick={() => setPendingClean(true)} startIcon={<DeleteSweepOutlined />} variant="outlined">
                         Clean orphans
@@ -205,6 +256,13 @@ export default function AssetsPanel() {
             )}
 
             <AddAssetsDialog onClose={() => setAddOpen(false)} open={addOpen} />
+            <CompressAssetsDialog
+                assets={assets}
+                onClose={() => setCompressOpen(false)}
+                onCompress={compressImageAssets}
+                onComplete={handleCompressed}
+                open={compressOpen}
+            />
             <AssetDetailsDialog
                 asset={selectedAsset}
                 onClose={() => setSelectedUri(null)}

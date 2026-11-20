@@ -1,5 +1,6 @@
 import { createContext, useCallback, useContext, useMemo, useState } from 'react';
 
+import { compressImageAssets as compressStoredImageAssets } from '../assets/assetCompression';
 import {
     defaultTypeForMedia,
     extensionFromFilename,
@@ -213,6 +214,29 @@ export function AssetProvider({children}) {
         }
     }, [patchCardData, bumpVersion]);
 
+    /**
+     * Resizes every locally stored image asset to a megapixel budget and refreshes asset URLs so
+     * the grid and the portrait pick up the new blobs.
+     *
+     * @param {number} megapixels
+     * @param {{onProgress?: Function}} [options]
+     * @returns {Promise<Object>} compression summary
+     */
+    const compressImageAssets = useCallback(async (megapixels, options) => {
+        setBusy(true);
+        try {
+            const result = await compressStoredImageAssets(
+                cardData?.data?.assets ?? [],
+                megapixels,
+                options,
+            );
+            if (result.resized.length > 0) bumpVersion();
+            return result;
+        } finally {
+            setBusy(false);
+        }
+    }, [cardData?.data?.assets, bumpVersion]);
+
     /** Deletes IndexedDB blobs that are no longer referenced by the current card. */
     const cleanOrphanAssets = useCallback(async () => {
         setBusy(true);
@@ -357,11 +381,13 @@ export function AssetProvider({children}) {
         updateAssetMetadata,
         clearAllAssets,
         cleanOrphanAssets,
+        compressImageAssets,
         ensureMainIcon,
         ingestCardAssets,
     }), [
         assetVersion, busy, addFile, addFiles, deleteAsset, replaceAsset, setMain, setMainIcon,
-        updateAssetMetadata, clearAllAssets, cleanOrphanAssets, ensureMainIcon, ingestCardAssets,
+        updateAssetMetadata, clearAllAssets, cleanOrphanAssets, compressImageAssets, ensureMainIcon,
+        ingestCardAssets,
     ]);
 
     return <AssetContext.Provider value={value}>{children}</AssetContext.Provider>;

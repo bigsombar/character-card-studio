@@ -41,6 +41,7 @@ there is no backend, account or telemetry.
 - Asset metadata lives in the card; binaries live in IndexedDB.
 - Download images, GIFs, audio and video linked from card text into local assets, then rewrite those URLs to `embeded://` references. Includes parallel downloads, progress, per-link retry and an import prompt. Hosts that block browser downloads can use an opt-in third-party CORS proxy fallback (10 services, 5 seconds per proxy attempt) after a one-time risk confirmation.
 - Main icon and background selection with one-click portrait replacement.
+- Megapixel compression for the portrait and for every local image asset at once (2, 1.5, 1 or 0.5 MP): aspect ratio is preserved, both sides snap to a 16 px grid, and images already below the target are never upscaled.
 - Thumbnail previews, orphan cleanup and browser storage estimates.
 
 ### One export pipeline

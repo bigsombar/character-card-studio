@@ -6,12 +6,17 @@ import { CardProvider } from './CardProvider';
 import { useCard } from './cardContext';
 import { resetEditorDb } from '../storage/db';
 import { getAsset, putAsset } from '../storage/assetStore';
+import { compressImageAssets as compressStoredImageAssets } from '../assets/assetCompression';
 import { createBlankPng, pngDataUrl } from '../test/pngFixtures';
 
 const BLANK_PNG_DATA_URL = pngDataUrl(createBlankPng());
 
 vi.mock('../assets/thumbnails', () => ({
     createThumbnail: vi.fn().mockResolvedValue(null),
+}));
+
+vi.mock('../assets/assetCompression', () => ({
+    compressImageAssets: vi.fn(),
 }));
 
 function wrapper({children}) {
@@ -81,6 +86,51 @@ describe('AssetProvider', () => {
         const ingested = await result.current.assets.ingestCardAssets(card);
         expect(ingested.data.assets[0].uri).toMatch(/^embeded:\/\//);
         expect(await getAsset(ingested.data.assets[0].uri)).toBeTruthy();
+    });
+
+    test('compresses image assets and refreshes asset URLs only when something changed', async () => {
+        const {result} = renderHook(() => ({card: useCard(), assets: useAssets()}), {wrapper});
+        await waitFor(() => expect(result.current.assets).toBeDefined());
+
+        await act(async () => {
+            await result.current.assets.addFile(pngFile(), {type: 'icon', name: 'main', main: true});
+        });
+        await waitFor(() => expect(result.current.card.cardData.data.assets).toHaveLength(1));
+
+        const assets = result.current.card.cardData.data.assets;
+        const versionBefore = result.current.assets.assetVersion;
+
+        compressStoredImageAssets.mockResolvedValue({
+            failed: [],
+            resized: [{ name: 'avatar', uri: assets[0].uri }],
+            savedBytes: 128,
+            skipped: [],
+            total: 1,
+        });
+
+        let summary;
+        await act(async () => {
+            summary = await result.current.assets.compressImageAssets(1, {onProgress: vi.fn()});
+        });
+
+        expect(compressStoredImageAssets).toHaveBeenCalledWith(assets, 1, expect.any(Object));
+        expect(summary.resized).toHaveLength(1);
+        await waitFor(() => expect(result.current.assets.assetVersion).toBe(versionBefore + 1));
+
+        compressStoredImageAssets.mockResolvedValue({
+            failed: [],
+            resized: [],
+            savedBytes: 0,
+            skipped: [{name: 'avatar', reason: 'small', uri: assets[0].uri}],
+            total: 1,
+        });
+
+        await act(async () => {
+            summary = await result.current.assets.compressImageAssets(0.5);
+        });
+
+        expect(summary.resized).toHaveLength(0);
+        expect(result.current.assets.assetVersion).toBe(versionBefore + 1);
     });
 
     test('removes orphaned blobs without touching referenced assets', async () => {

@@ -78,6 +78,12 @@ browser storage or on another device — export CHARX or JSON with inlined asset
 - **Preview/play** — images open full-size, audio has an embedded player, video has a poster and
   modal playback.
 - **Replace** — replaces bytes and keeps the asset name/type; the extension may change.
+- **Compress images** — resizes every locally stored PNG, JPEG and WebP asset to a shared
+  megapixel target (2, 1.5, 1 or 0.5 MP). The aspect ratio is preserved, both sides snap to a
+  16 px grid, and images already at or below the target are skipped instead of upscaled. GIF and
+  AVIF assets are left untouched because a canvas re-encode would drop animation or change the
+  format. Asset URIs and extensions stay the same; only the stored bytes change. The dialog shows
+  per-file progress and closes when the batch finishes.
 - **Linked media** — scans descriptions, greetings, prompts, multilingual notes and lorebook text
   for Markdown images, HTML `<img>/<audio>/<video>/<source>` tags, BBCode `[img]` and bare media
   URLs. HTTPS links are downloaded into IndexedDB and added as `other` / `x_audio` / `x_video`
