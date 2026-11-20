@@ -131,6 +131,11 @@ Live app: <https://bigsombar.github.io/character-card-studio/>
 
 Repository: <https://github.com/bigsombar/character-card-studio>
 
+## License
+
+Character Card Studio is licensed under the [GNU Affero General Public License v3.0 or later](LICENSE)
+(`AGPL-3.0-or-later`).
+
 ## Credits
 
 Character Card Studio is inspired by the original V2 character card editor by
