@@ -13,7 +13,8 @@ const EMPHASIS_PATTERN = /("[^"\n]*"|«[^»\n]*»|“[^”\n]*”|\*\S(?:[^*\n]*
 
 const SEGMENT_STYLES = {
     italic: { color: tokens.color.textMuted, fontStyle: 'italic' },
-    macro: { color: tokens.color.jade },
+    // A macro keeps its own upright glyphs even when it sits inside an italic sentence.
+    macro: { color: tokens.color.jade, fontStyle: 'normal' },
     quote: { color: tokens.color.yellowMuted },
 };
 
@@ -28,36 +29,47 @@ export function splitMacroSegments(value) {
 }
 
 /**
- * Splits text into the segments the mirror layer renders, each with an optional style kind:
- * `macro` for {{user}} / {{char}}, `italic` for *text*, `quote` for "text", or no style for the
- * rest. Macros win over emphasis, so a *...* span that contains a macro keeps a green macro and
- * plain asterisks rather than being repainted as italic.
+ * Splits a chunk into macros and plain text, applying the surrounding emphasis style to the
+ * plain pieces. Macros keep their own green, upright style even inside *italic* or "quoted" text.
  */
-export function splitHighlightSegments(value) {
-    const segments = [];
-
-    splitMacroSegments(value).forEach((part, index) => {
+function pushMacroAwareSegments(segments, chunk, emphasisStyle) {
+    splitMacroSegments(chunk).forEach((part, index) => {
         if (part === '') return;
         if (index % 2 === 1) {
             segments.push({ style: 'macro', text: part });
             return;
         }
-
-        let cursor = 0;
-        for (const match of part.matchAll(EMPHASIS_PATTERN)) {
-            if (match.index > cursor) {
-                segments.push({ text: part.slice(cursor, match.index) });
-            }
-            segments.push({
-                style: match[0].startsWith('*') ? 'italic' : 'quote',
-                text: match[0],
-            });
-            cursor = match.index + match[0].length;
-        }
-        if (cursor < part.length) {
-            segments.push({ text: part.slice(cursor) });
-        }
+        segments.push(emphasisStyle ? { style: emphasisStyle, text: part } : { text: part });
     });
+}
+
+/**
+ * Splits text into the segments the mirror layer renders, each with an optional style kind:
+ * `macro` for {{user}} / {{char}}, `italic` for *text*, `quote` for "text", or no style for the
+ * rest.
+ *
+ * Emphasis is detected before macros, so `*...{{char}}...*` stays one italic sentence: the text
+ * around the macro is grey italic, while the macro itself remains green and upright.
+ */
+export function splitHighlightSegments(value) {
+    const text = typeof value === 'string' ? value : value == null ? '' : String(value);
+    if (text === '') return [];
+
+    const segments = [];
+    let cursor = 0;
+
+    for (const match of text.matchAll(EMPHASIS_PATTERN)) {
+        if (match.index > cursor) {
+            pushMacroAwareSegments(segments, text.slice(cursor, match.index), null);
+        }
+        const style = match[0].startsWith('*') ? 'italic' : 'quote';
+        pushMacroAwareSegments(segments, match[0], style);
+        cursor = match.index + match[0].length;
+    }
+
+    if (cursor < text.length) {
+        pushMacroAwareSegments(segments, text.slice(cursor), null);
+    }
 
     return segments;
 }

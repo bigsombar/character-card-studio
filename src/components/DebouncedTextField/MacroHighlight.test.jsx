@@ -58,6 +58,26 @@ describe('MacroHighlight', () => {
         expect(spans[2]).toHaveStyle({ color: '#EBD200' });
         expect(spans[3]).toHaveStyle({ color: '#EBD200' });
     });
+
+    test('keeps the surrounding sentence italic when a macro sits inside it', () => {
+        const { container } = render(
+            <MacroHighlight value={'*The {{char}} waits for {{user}}.*'} />,
+        );
+        const spans = [...container.querySelectorAll('span')];
+
+        expect(spans.map((span) => span.textContent)).toEqual([
+            '*The ',
+            '{{char}}',
+            ' waits for ',
+            '{{user}}',
+            '.*',
+        ]);
+        expect(spans[0]).toHaveStyle({ color: '#B3B3B3', fontStyle: 'italic' });
+        expect(spans[1]).toHaveStyle({ color: '#14A76C', fontStyle: 'normal' });
+        expect(spans[2]).toHaveStyle({ color: '#B3B3B3', fontStyle: 'italic' });
+        expect(spans[3]).toHaveStyle({ color: '#14A76C', fontStyle: 'normal' });
+        expect(spans[4]).toHaveStyle({ color: '#B3B3B3', fontStyle: 'italic' });
+    });
 });
 
 describe('splitHighlightSegments', () => {
@@ -80,6 +100,24 @@ describe('splitHighlightSegments', () => {
     test('does not treat spaced asterisks as emphasis', () => {
         expect(splitHighlightSegments('5 * 3 * 2')).toEqual([
             { text: '5 * 3 * 2' },
+        ]);
+    });
+
+    test('keeps emphasis across macros instead of splitting the asterisks apart', () => {
+        expect(splitHighlightSegments('*The {{char}} waits for {{user}}.*')).toEqual([
+            { style: 'italic', text: '*The ' },
+            { style: 'macro', text: '{{char}}' },
+            { style: 'italic', text: ' waits for ' },
+            { style: 'macro', text: '{{user}}' },
+            { style: 'italic', text: '.*' },
+        ]);
+    });
+
+    test('keeps quote styling around a macro inside the quote', () => {
+        expect(splitHighlightSegments('"Hello {{user}}"')).toEqual([
+            { style: 'quote', text: '"Hello ' },
+            { style: 'macro', text: '{{user}}' },
+            { style: 'quote', text: '"' },
         ]);
     });
 
