@@ -1,0 +1,1 @@
+function e(e){return e.replace(/^./,e=>e.toUpperCase())}export{e as t};
