@@ -23,6 +23,10 @@ describe('App shell', () => {
     render(<App />);
     expect(screen.getByRole('navigation', { name: /editor sections/i })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: /character: name, description/i })).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: /open the github repository/i })).toHaveAttribute(
+      'href',
+      'https://github.com/bigsombar/character-card-studio',
+    );
     expect(screen.getByRole('heading', { name: 'Character' })).toBeInTheDocument();
     expect((await screen.findAllByRole('button', { name: /help:/i })).length).toBeGreaterThan(0);
   });

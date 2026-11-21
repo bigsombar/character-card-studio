@@ -112,6 +112,34 @@ export default function SideRail({ activeSection, onSectionChange }) {
             })}
 
             <Box sx={{ flex: 1 }} />
+            <Tooltip arrow placement="right" title="Open the GitHub repository">
+                <Typography
+                    aria-label="Open the GitHub repository"
+                    component="a"
+                    href="https://github.com/bigsombar/character-card-studio"
+                    rel="noopener noreferrer"
+                    target="_blank"
+                    sx={{
+                        color: 'text.secondary',
+                        fontFamily: 'monospace',
+                        fontSize: '0.62rem',
+                        fontWeight: 600,
+                        letterSpacing: '0.08em',
+                        mb: 1.5,
+                        textDecoration: 'none',
+                        writingMode: 'vertical-rl',
+                        '&:hover': {
+                            color: 'primary.main',
+                        },
+                        '&:focus-visible': {
+                            outline: '2px solid #FFE400',
+                            outlineOffset: 2,
+                        },
+                    }}
+                >
+                    GITHUB
+                </Typography>
+            </Tooltip>
             <Tooltip arrow placement="right" title="Local-only CCv3 editor">
                 <Typography
                     sx={{
