@@ -366,7 +366,7 @@ export default function LorebookSection({ onImportFile, showAdvancedJson = false
                     gridTemplateColumns: { xs: '1fr', md: 'minmax(320px, 1fr) minmax(0, 2fr)' },
                 }}
             >
-                <Stack spacing={2} sx={{ order: { xs: 2, md: 1 } }}>
+                <Stack spacing={2} sx={{ minWidth: 0, order: { xs: 2, md: 1 } }}>
                     <Surface sx={{ p: { xs: 2, md: 2.5 } }}>
                 <Stack direction="row" spacing={2} sx={{ alignItems: 'flex-start', justifyContent: 'space-between', mb: 2 }}>
                     <Box>
@@ -450,7 +450,7 @@ export default function LorebookSection({ onImportFile, showAdvancedJson = false
                     </Stack>
                 </Stack>
 
-                <Stack spacing={2} sx={{ order: { xs: 1, md: 2 } }}>
+                <Stack spacing={2} sx={{ minWidth: 0, order: { xs: 1, md: 2 } }}>
                     <Stack
                         direction="row"
                         sx={{ alignItems: 'flex-start', flexWrap: 'wrap', gap: 1, justifyContent: 'space-between' }}
@@ -515,7 +515,11 @@ export default function LorebookSection({ onImportFile, showAdvancedJson = false
                                                 style={dragProvided.draggableProps.style}
                                             >
                                                 <Tooltip title="Drag to reorder">
-                                                    <IconButton {...dragProvided.dragHandleProps} aria-label={`Reorder entry ${index + 1}`}>
+                                                    <IconButton
+                                                        {...dragProvided.dragHandleProps}
+                                                        aria-label={`Reorder entry ${index + 1}`}
+                                                        sx={{ display: { xs: 'none', md: 'inline-flex' }, flexShrink: 0 }}
+                                                    >
                                                         <DragHandle />
                                                     </IconButton>
                                                 </Tooltip>
@@ -525,7 +529,7 @@ export default function LorebookSection({ onImportFile, showAdvancedJson = false
                                                         isExpanded ? [...previous, index] : previous.filter((item) => item !== index)
                                                     ))}
                                                     slotProps={{ transition: { unmountOnExit: true } }}
-                                                    sx={{ mb: 2, mt: 1, width: '100%' }}
+                                                    sx={{ mb: 2, minWidth: 0, mt: 1, width: '100%' }}
                                                 >
                                                     <AccordionSummary expandIcon={<ArrowDropDown />}>
                                                         <Typography noWrap sx={{ fontWeight: 600 }}>
@@ -670,7 +674,12 @@ export default function LorebookSection({ onImportFile, showAdvancedJson = false
                                                     </AccordionDetails>
                                                 </Accordion>
                                                 <Tooltip title="Delete this entry">
-                                                    <IconButton aria-label={`Delete entry ${index + 1}`} color="error" onClick={() => setPendingDeleteEntry(index)}>
+                                                    <IconButton
+                                                        aria-label={`Delete entry ${index + 1}`}
+                                                        color="error"
+                                                        onClick={() => setPendingDeleteEntry(index)}
+                                                        sx={{ flexShrink: 0 }}
+                                                    >
                                                         <DeleteOutline />
                                                     </IconButton>
                                                 </Tooltip>

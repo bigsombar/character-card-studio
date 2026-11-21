@@ -549,7 +549,7 @@ const TavernCardEditor = ({ activeSection = 0 }) => {
                                 title={activeSectionMeta.label}
                             />
                         )}
-                        <Box sx={{ flex: 1, mr: -1, overflow: 'auto', pr: 1 }}>
+                        <Box sx={{ flex: 1, mr: { xs: 0, md: -1 }, overflow: 'auto', pr: { xs: 0, md: 1 } }}>
                             {isMobile && activeSection === 0 && portraitVisible && (
                                 <Box
                                     sx={{
