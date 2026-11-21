@@ -130,6 +130,9 @@ export const theme = createTheme({
                     borderRadius: shape.input,
                     minHeight: 38,
                     paddingInline: 16,
+                    '@media (max-width: 899.95px), (pointer: coarse)': {
+                        minHeight: 44,
+                    },
                 },
                 containedPrimary: {
                     '&:hover': { backgroundColor: '#FFEB57' },
@@ -151,6 +154,10 @@ export const theme = createTheme({
                 root: {
                     borderRadius: shape.input,
                     '&:hover': { backgroundColor: 'rgba(255, 228, 0, 0.08)' },
+                    '@media (max-width: 899.95px), (pointer: coarse)': {
+                        minHeight: 44,
+                        minWidth: 44,
+                    },
                 },
             },
         },
@@ -252,7 +259,12 @@ export const theme = createTheme({
         },
         MuiAccordionDetails: {
             styleOverrides: {
-                root: { padding: '8px 24px 24px' },
+                root: {
+                    padding: '8px 24px 24px',
+                    '@media (max-width: 899.95px)': {
+                        padding: '8px 16px 16px',
+                    },
+                },
             },
         },
         MuiChip: {

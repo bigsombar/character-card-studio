@@ -9,7 +9,7 @@ import default_avatar from '../../assets/default_avatar.png';
  * Portrait column: click the image to replace it, or use the explicit upload button.
  * The resolved main icon wins over the legacy stored preview, matching export behavior.
  */
-export default function PortraitPanel({ displayPortrait, fileName, onCompress, onUpload, sizeLabel, sizeHint }) {
+export default function PortraitPanel({ compact = false, displayPortrait, fileName, onCompress, onUpload, sizeLabel, sizeHint }) {
     const inputRef = useRef(null);
 
     return (
@@ -17,13 +17,13 @@ export default function PortraitPanel({ displayPortrait, fileName, onCompress, o
             sx={{
                 alignItems: 'center',
                 display: 'flex',
-                flex: 1,
+                flex: compact ? '0 0 auto' : 1,
                 flexDirection: 'column',
-                gap: 1.5,
-                height: '100%',
+                gap: compact ? 1 : 1.5,
+                height: compact ? 'auto' : '100%',
                 minWidth: 0,
                 overflow: 'auto',
-                p: 2,
+                p: compact ? 1.5 : 2,
             }}
         >
             <Box
@@ -38,16 +38,18 @@ export default function PortraitPanel({ displayPortrait, fileName, onCompress, o
                 role="button"
                 sx={{
                     alignItems: 'center',
-                    aspectRatio: { xs: '16 / 10', md: undefined },
+                    alignSelf: compact ? 'center' : undefined,
+                    aspectRatio: compact ? '16 / 9' : { xs: '16 / 10', md: undefined },
                     bgcolor: 'background.default',
                     border: 1,
                     borderColor: 'divider',
                     borderRadius: 2,
                     cursor: 'pointer',
                     display: 'flex',
-                    flex: { xs: '0 0 auto', md: 1 },
+                    flex: compact ? '0 0 auto' : { xs: '0 0 auto', md: 1 },
                     justifyContent: 'center',
-                    maxHeight: { xs: 240, md: 'none' },
+                    maxHeight: compact ? 180 : { xs: 240, md: 'none' },
+                    maxWidth: compact ? 320 : undefined,
                     overflow: 'hidden',
                     width: '100%',
                     '&:focus-visible': { outline: '2px solid #FFE400', outlineOffset: 2 },
@@ -73,9 +75,11 @@ export default function PortraitPanel({ displayPortrait, fileName, onCompress, o
                     <Button onClick={onCompress} size="small" variant="text">Compress</Button>
                 )}
             </Stack>
-            <Typography color="text.secondary" sx={{ textAlign: 'center' }} variant="caption">
-                The portrait is also the main icon asset and is used by PNG export.
-            </Typography>
+            {!compact && (
+                <Typography color="text.secondary" sx={{ textAlign: 'center' }} variant="caption">
+                    The portrait is also the main icon asset and is used by PNG export.
+                </Typography>
+            )}
             {sizeLabel && (
                 <Tooltip title={sizeHint ?? ''}>
                     <Typography color="text.secondary" variant="caption">

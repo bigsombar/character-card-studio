@@ -1,5 +1,7 @@
 import { Box, Link, Typography } from '@mui/material';
 
+import useIsMobile from '../../hooks/useIsMobile';
+import MobileNav from './MobileNav';
 import SideRail from './SideRail';
 import TopBar from './TopBar';
 
@@ -8,6 +10,8 @@ import TopBar from './TopBar';
  * The editor itself remains responsible for its content and dialogs.
  */
 export default function AppShell({ activeSection, onSectionChange, children }) {
+    const isMobile = useIsMobile();
+
     return (
         <Box
             sx={{
@@ -15,11 +19,14 @@ export default function AppShell({ activeSection, onSectionChange, children }) {
                 color: 'text.primary',
                 display: 'flex',
                 height: '100vh',
+                '@supports (height: 100dvh)': {
+                    height: '100dvh',
+                },
                 overflow: 'hidden',
             }}
         >
-            <SideRail activeSection={activeSection} onSectionChange={onSectionChange} />
-            <Box sx={{ display: 'flex', flex: 1, flexDirection: 'column', minWidth: 0 }}>
+            {!isMobile && <SideRail activeSection={activeSection} onSectionChange={onSectionChange} />}
+            <Box sx={{ display: 'flex', flex: 1, flexDirection: 'column', minHeight: 0, minWidth: 0 }}>
                 <TopBar />
                 <Box
                     component="main"
@@ -32,42 +39,46 @@ export default function AppShell({ activeSection, onSectionChange, children }) {
                 >
                     {children}
                 </Box>
-                <Box
-                    component="footer"
-                    sx={{
-                        borderTop: 1,
-                        borderColor: 'divider',
-                        flexShrink: 0,
-                        px: 2,
-                        py: 0.5,
-                        textAlign: 'right',
-                    }}
-                >
-                    <Typography
-                        component="span"
-                        sx={{ color: 'rgba(242, 240, 233, 0.6)', fontSize: '0.62rem' }}
+                {isMobile ? (
+                    <MobileNav activeSection={activeSection} onSectionChange={onSectionChange} />
+                ) : (
+                    <Box
+                        component="footer"
+                        sx={{
+                            borderTop: 1,
+                            borderColor: 'divider',
+                            flexShrink: 0,
+                            px: 2,
+                            py: 0.5,
+                            textAlign: 'right',
+                        }}
                     >
-                        <Link
-                            href="https://icons8.com/icon/MTivAq0U9TSN/anime"
-                            rel="noopener noreferrer"
-                            target="_blank"
-                            underline="hover"
-                            sx={{ color: 'inherit' }}
+                        <Typography
+                            component="span"
+                            sx={{ color: 'rgba(242, 240, 233, 0.6)', fontSize: '0.62rem' }}
                         >
-                            Anime
-                        </Link>{' '}
-                        icon by{' '}
-                        <Link
-                            href="https://icons8.com"
-                            rel="noopener noreferrer"
-                            target="_blank"
-                            underline="hover"
-                            sx={{ color: 'inherit' }}
-                        >
-                            Icons8
-                        </Link>
-                    </Typography>
-                </Box>
+                            <Link
+                                href="https://icons8.com/icon/MTivAq0U9TSN/anime"
+                                rel="noopener noreferrer"
+                                target="_blank"
+                                underline="hover"
+                                sx={{ color: 'inherit' }}
+                            >
+                                Anime
+                            </Link>{' '}
+                            icon by{' '}
+                            <Link
+                                href="https://icons8.com"
+                                rel="noopener noreferrer"
+                                target="_blank"
+                                underline="hover"
+                                sx={{ color: 'inherit' }}
+                            >
+                                Icons8
+                            </Link>
+                        </Typography>
+                    </Box>
+                )}
             </Box>
         </Box>
     );

@@ -23,6 +23,7 @@ there is no backend, account or telemetry.
 
 ### Complete V3 editing
 
+- Below 900 px the editor switches to a mobile shell: bottom navigation for Character, Greetings, Lorebook and Assets, a More sheet for secondary sections, a compact top bar and a portrait header on Character.
 - Character, greeting, creator, prompt, lorebook, group greeting and advanced sections.
 - Lorebook uses a two-column workspace: book settings on the left, entries on the right. The portrait column and card file strip are hidden on Lorebook and Assets so those views get the full editor width.
 - Lorebook metadata and entries are grouped into metadata, retrieval, triggers, ordering, flags, content and advanced JSON, with compact tri-state boolean controls. Per-entry Advanced JSON is hidden by default and revealed for all entries with a Lorebook header toggle, since imported `extensions` can be very large.
@@ -57,7 +58,7 @@ there is no backend, account or telemetry.
 - Zip-slip, zip-bomb and encrypted-archive protection.
 - HTTP asset URIs are preserved but never loaded.
 - `ErrorBoundary` recovery, unified notifications and accessible dialogs.
-- 281 unit, integration, security, performance and axe tests.
+- 283 unit, integration, security, performance and axe tests.
 - Lighthouse Accessibility 100 on the main editor surfaces.
 
 ## Screenshots
@@ -115,7 +116,7 @@ The stack is Vite 8, React 19, MUI 9 and Vitest 5. IndexedDB uses `idb`; CHARX u
 
 ```text
 npm run lint      0 errors / 0 warnings
-npm run test:run  281 passed / 281
+npm run test:run  283 passed / 283
 npm run build     production bundle, ~112 kB gzip main chunk
 ```
 

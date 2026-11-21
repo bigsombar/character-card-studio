@@ -36,6 +36,12 @@ export default function InfoTooltip({ title, text, size = 'small' }) {
                         borderRadius: '50%',
                     },
                     '&:hover': { color: 'primary.main' },
+                    '@media (max-width: 899.95px), (pointer: coarse)': {
+                        margin: '-14px',
+                        marginLeft: '-8px',
+                        minHeight: 44,
+                        minWidth: 44,
+                    },
                 }}
                 tabIndex={0}
             >

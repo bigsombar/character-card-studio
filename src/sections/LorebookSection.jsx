@@ -366,7 +366,7 @@ export default function LorebookSection({ onImportFile, showAdvancedJson = false
                     gridTemplateColumns: { xs: '1fr', md: 'minmax(320px, 1fr) minmax(0, 2fr)' },
                 }}
             >
-                <Stack spacing={2}>
+                <Stack spacing={2} sx={{ order: { xs: 2, md: 1 } }}>
                     <Surface sx={{ p: { xs: 2, md: 2.5 } }}>
                 <Stack direction="row" spacing={2} sx={{ alignItems: 'flex-start', justifyContent: 'space-between', mb: 2 }}>
                     <Box>
@@ -450,8 +450,11 @@ export default function LorebookSection({ onImportFile, showAdvancedJson = false
                     </Stack>
                 </Stack>
 
-                <Stack spacing={2}>
-                    <Stack direction="row" sx={{ alignItems: 'flex-start', justifyContent: 'space-between' }}>
+                <Stack spacing={2} sx={{ order: { xs: 1, md: 2 } }}>
+                    <Stack
+                        direction="row"
+                        sx={{ alignItems: 'flex-start', flexWrap: 'wrap', gap: 1, justifyContent: 'space-between' }}
+                    >
                         <Box>
                             <Typography
                                 component="h3"

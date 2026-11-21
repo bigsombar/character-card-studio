@@ -54,10 +54,11 @@ export default function TopBar() {
                 borderColor: 'divider',
                 display: 'flex',
                 flexShrink: 0,
-                gap: 2,
+                gap: 1.5,
                 justifyContent: 'space-between',
-                minHeight: 64,
-                px: { xs: 2, md: 3 },
+                minHeight: { xs: 56, md: 64 },
+                pt: 'env(safe-area-inset-top)',
+                px: { xs: 1.5, md: 3 },
             }}
         >
             <Box sx={{ minWidth: 0 }}>
@@ -65,6 +66,7 @@ export default function TopBar() {
                     noWrap
                     sx={{
                         color: 'text.secondary',
+                        display: { xs: 'none', sm: 'block' },
                         fontFamily: 'monospace',
                         fontSize: '0.65rem',
                         letterSpacing: '0.12em',
@@ -78,7 +80,7 @@ export default function TopBar() {
                     noWrap
                     sx={{
                         fontFamily: '"Space Grotesk Variable", "Space Grotesk", sans-serif',
-                        fontSize: { xs: '1rem', md: '1.2rem' },
+                        fontSize: { xs: '0.95rem', md: '1.2rem' },
                         fontWeight: 600,
                         lineHeight: 1.2,
                     }}
@@ -95,7 +97,7 @@ export default function TopBar() {
                     color="secondary"
                     label={cardData?.spec_version ? `v${cardData.spec_version}` : 'v3.0'}
                     size="small"
-                    sx={{ fontWeight: 700, letterSpacing: '0.04em' }}
+                    sx={{ display: { xs: 'none', sm: 'flex' }, fontWeight: 700, letterSpacing: '0.04em' }}
                     variant="outlined"
                 />
                 <Button

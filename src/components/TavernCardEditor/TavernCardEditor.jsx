@@ -20,6 +20,7 @@ import formatBytes from '../../utils/formatBytes';
 import { collectRemoteMedia } from '../../assets/remoteMedia';
 import useAssetUrl from '../../hooks/useAssetUrl';
 import useCardOverwrite from '../../hooks/useCardOverwrite';
+import useIsMobile from '../../hooks/useIsMobile';
 import usePortraitPipeline from '../../hooks/usePortraitPipeline';
 import normalizeCardData, { normalizeLorebook } from '../../utils/normalizeCardData';
 import { useCard } from '../../context/cardContext';
@@ -60,6 +61,7 @@ const SECTION_COMPONENTS = {
 const PORTRAITLESS_SECTIONS = new Set([4, 5]);
 
 const TavernCardEditor = ({ activeSection = 0 }) => {
+    const isMobile = useIsMobile();
     const { cardData, patchCardData, setCardData, initialWarnings, isHydrating } = useCard();
     const { clearAllAssets, ensureMainIcon, ingestCardAssets } = useAssets();
     const { notify } = useNotifications();
@@ -73,7 +75,7 @@ const TavernCardEditor = ({ activeSection = 0 }) => {
 
     const [confirmClear, setConfirmClear] = useState(false);
     const [portraitVisible, setPortraitVisible] = useState(true);
-    const showPortraitPanel = portraitVisible && !PORTRAITLESS_SECTIONS.has(activeSection);
+    const showPortraitPanel = portraitVisible && !isMobile && !PORTRAITLESS_SECTIONS.has(activeSection);
     const [file, setFile] = useState(null);
     const [importProgress, setImportProgress] = useState(null);
     const [linkedMediaPromptOpen, setLinkedMediaPromptOpen] = useState(false);
@@ -395,7 +397,7 @@ const TavernCardEditor = ({ activeSection = 0 }) => {
                     {statusMessage}
                 </Typography>
             )}
-            {!PORTRAITLESS_SECTIONS.has(activeSection) && (
+            {!isMobile && !PORTRAITLESS_SECTIONS.has(activeSection) && (
                 <FormControlLabel
                     control={<Checkbox checked={portraitVisible} onChange={() => setPortraitVisible(!portraitVisible)} size="small" />}
                     label="Show portrait"
@@ -464,7 +466,10 @@ const TavernCardEditor = ({ activeSection = 0 }) => {
                 open={overwriteConfirmation}
             />
 
-            {!showPortraitPanel && !PORTRAITLESS_SECTIONS.has(activeSection) && fileToolbar}
+            {!showPortraitPanel
+                && !PORTRAITLESS_SECTIONS.has(activeSection)
+                && (!isMobile || activeSection === 0)
+                && fileToolbar}
 
             <Box
                 sx={{
@@ -545,6 +550,32 @@ const TavernCardEditor = ({ activeSection = 0 }) => {
                             />
                         )}
                         <Box sx={{ flex: 1, mr: -1, overflow: 'auto', pr: 1 }}>
+                            {isMobile && activeSection === 0 && portraitVisible && (
+                                <Box
+                                    sx={{
+                                        bgcolor: 'background.paper',
+                                        border: 1,
+                                        borderColor: 'divider',
+                                        borderRadius: 2,
+                                        mb: 2,
+                                        overflow: 'hidden',
+                                    }}
+                                >
+                                    <PortraitPanel
+                                        compact
+                                        displayPortrait={portraitSource}
+                                        fileName={file ? file.name : 'Uploaded portrait'}
+                                        onCompress={() => setCompressDialogOpen(true)}
+                                        onUpload={handlePortraitUpload}
+                                        sizeHint={exportBytes !== null
+                                            ? `Portrait ${formatBytes(exportBytes)} + card data ${formatBytes(cardChunkEstimate)}`
+                                            : undefined}
+                                        sizeLabel={exportBytes !== null
+                                            ? `PNG size: ${formatBytes(exportBytes + cardChunkEstimate)}`
+                                            : undefined}
+                                    />
+                                </Box>
+                            )}
                             {activeSection === 4 && (
                                 <SectionHeader
                                     actions={panelActions}
