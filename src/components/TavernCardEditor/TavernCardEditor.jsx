@@ -1,7 +1,6 @@
 import { lazy, Suspense, useCallback, useDeferredValue, useEffect, useMemo, useRef, useState } from 'react';
 
 import {
-    Button,
     Box,
     Checkbox,
     FormControlLabel,
@@ -112,7 +111,6 @@ const TavernCardEditor = ({ activeSection = 0 }) => {
         confirmOverwrite,
         overwriteConfirmation,
         requestOverwrite,
-        requestOverwriteFromFile,
     } = useCardOverwrite({ onApplied: maybePromptForLinkedMedia });
 
     const loadCardIntoState = async (parsedCardData, importMeta = {}) => {
@@ -309,10 +307,6 @@ const TavernCardEditor = ({ activeSection = 0 }) => {
         }
     }
 
-    const handleOverwriteFileInput = (event) => {
-        void requestOverwriteFromFile(event.target.files?.[0]);
-    };
-
     const handleApplyCompression = async (dataUrl) => {
         await applyCompression(dataUrl);
         setCompressDialogOpen(false);
@@ -408,7 +402,7 @@ const TavernCardEditor = ({ activeSection = 0 }) => {
                     sx={{ mr: 0, whiteSpace: 'nowrap' }}
                 />
             )}
-            {activeSection === 4 ? (
+            {activeSection === 4 && (
                 <Tooltip
                     describeChild
                     title="Show the Advanced JSON (extensions) fields on every lorebook entry"
@@ -426,22 +420,6 @@ const TavernCardEditor = ({ activeSection = 0 }) => {
                         sx={{ mr: 0, whiteSpace: 'nowrap' }}
                     />
                 </Tooltip>
-            ) : file && (
-                <div>
-                    <input
-                        accept=".json"
-                        hidden
-                        id="json-upload"
-                        onChange={handleOverwriteFileInput}
-                        onClick={(event) => { event.target.value = null; }}
-                        type="file"
-                    />
-                    <label htmlFor="json-upload">
-                        <Tooltip describeChild title="Overwrite the contents of this card with a JSON while retaining the display picture">
-                            <Button component="span" sx={{ whiteSpace: 'nowrap' }} variant="outlined">Overwrite with JSON</Button>
-                        </Tooltip>
-                    </label>
-                </div>
             )}
         </Stack>
     );

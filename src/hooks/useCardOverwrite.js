@@ -1,6 +1,5 @@
 import { useCallback, useReducer } from 'react';
 
-import normalizeCardData from '../utils/normalizeCardData';
 import { useCard } from '../context/cardContext';
 import { useAssets } from '../context/AssetContext';
 import { useNotifications } from '../context/NotificationContext';
@@ -31,8 +30,7 @@ function pendingReducer(state, action) {
  *   cancelOverwrite: Function,
  *   confirmOverwrite: Function,
  *   overwriteConfirmation: boolean,
- *   requestOverwrite: Function,
- *   requestOverwriteFromFile: Function
+ *   requestOverwrite: Function
  * }}
  */
 export default function useCardOverwrite({ onApplied } = {}) {
@@ -49,36 +47,6 @@ export default function useCardOverwrite({ onApplied } = {}) {
     const cancelOverwrite = useCallback(() => {
         dispatch({ type: 'clear' });
     }, []);
-
-    const requestOverwriteFromFile = useCallback(async (file) => {
-        if (!file) return;
-
-        let parsed;
-        try {
-            parsed = JSON.parse(await file.text());
-        } catch (error) {
-            notify({
-                title: 'JSON import failed',
-                severity: 'error',
-                message: `Please upload a valid .json file: ${error.message}`,
-            });
-            return;
-        }
-
-        const result = normalizeCardData(parsed);
-        if (!result.ok) {
-            notify({
-                title: 'Import failed',
-                severity: 'error',
-                message: result.error,
-                errors: result.errors,
-                warnings: result.warnings,
-            });
-            return;
-        }
-
-        requestOverwrite(result.cardData, result.warnings);
-    }, [notify, requestOverwrite]);
 
     const confirmOverwrite = useCallback(async () => {
         if (!pending.card) return null;
@@ -115,6 +83,5 @@ export default function useCardOverwrite({ onApplied } = {}) {
         confirmOverwrite,
         overwriteConfirmation: Boolean(pending.card),
         requestOverwrite,
-        requestOverwriteFromFile,
     };
 }
