@@ -1,3 +1,4 @@
+import { useCallback, useState } from 'react';
 import { fireEvent, render, screen } from '@testing-library/react';
 import { describe, expect, test, vi } from 'vitest';
 
@@ -59,6 +60,27 @@ function expandFirstEntry() {
     fireEvent.click(screen.getByText('Alice'));
 }
 
+function StatefulLorebook({ entries = [], ...props }) {
+    const [cardData, setCardData] = useState(makeCard(entries));
+    const patchCardData = useCallback((patch) => {
+        setCardData((previous) => {
+            const resolved = typeof patch === 'function' ? patch(previous) : patch;
+            return { ...previous, data: { ...previous.data, ...resolved } };
+        });
+    }, []);
+
+    return (
+        <>
+            <CardContext.Provider value={{ cardData, patchCardData, setCardData }}>
+                <NotificationProvider>
+                    <LorebookSection {...props} />
+                </NotificationProvider>
+            </CardContext.Provider>
+            <output data-testid="card-entries">{JSON.stringify(cardData.data.character_book.entries)}</output>
+        </>
+    );
+}
+
 describe('LorebookSection advanced JSON visibility', () => {
     test('hides entry extensions by default', () => {
         renderSection();
@@ -103,5 +125,65 @@ describe('LorebookSection advanced JSON visibility', () => {
 
         fireEvent.click(screen.getByText('Klee'));
         expect(screen.getAllByText('Entry extensions (JSON)')).toHaveLength(2);
+    });
+});
+
+describe('LorebookSection add similar', () => {
+    test('disables Add similar when there are no entries', () => {
+        render(<StatefulLorebook entries={[]} />);
+
+        expect(screen.getByRole('button', { name: /add similar/i })).toBeDisabled();
+    });
+
+    test('copies the last entry without its identity, triggers or content', () => {
+        const source = makeEntry({
+            case_sensitive: true,
+            comment: 'Klee',
+            constant: true,
+            content: 'Boom!',
+            enabled: false,
+            extensions: { custom: { keep: true }, role: 2 },
+            id: 'klee-1',
+            insertion_order: 42,
+            keys: ['Klee'],
+            name: 'Klee',
+            position: 'after_char',
+            priority: 7,
+            secondary_keys: ['Bomb'],
+            selective: false,
+            use_regex: true,
+        });
+
+        render(<StatefulLorebook entries={[makeEntry(), source]} />);
+        fireEvent.click(screen.getByRole('button', { name: /add similar/i }));
+
+        const entries = JSON.parse(screen.getByTestId('card-entries').textContent);
+        expect(entries).toHaveLength(3);
+        expect(entries[2]).toMatchObject({
+            case_sensitive: true,
+            constant: true,
+            content: '',
+            enabled: false,
+            extensions: { custom: { keep: true }, role: 2 },
+            insertion_order: 42,
+            keys: [],
+            position: 'after_char',
+            priority: 7,
+            selective: false,
+            use_regex: true,
+        });
+        expect(entries[2].comment).toBeUndefined();
+        expect(entries[2].id).toBeUndefined();
+        expect(entries[2].name).toBeUndefined();
+        expect(entries[2].secondary_keys).toBeUndefined();
+
+        expect(entries[1]).toMatchObject({
+            comment: 'Klee',
+            content: 'Boom!',
+            id: 'klee-1',
+            keys: ['Klee'],
+            name: 'Klee',
+            secondary_keys: ['Bomb'],
+        });
     });
 });

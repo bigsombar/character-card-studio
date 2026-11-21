@@ -57,7 +57,7 @@ there is no backend, account or telemetry.
 - Zip-slip, zip-bomb and encrypted-archive protection.
 - HTTP asset URIs are preserved but never loaded.
 - `ErrorBoundary` recovery, unified notifications and accessible dialogs.
-- 277 unit, integration, security, performance and axe tests.
+- 279 unit, integration, security, performance and axe tests.
 - Lighthouse Accessibility 100 on the main editor surfaces.
 
 ## Screenshots
@@ -115,7 +115,7 @@ The stack is Vite 8, React 19, MUI 9 and Vitest 5. IndexedDB uses `idb`; CHARX u
 
 ```text
 npm run lint      0 errors / 0 warnings
-npm run test:run  277 passed / 277
+npm run test:run  279 passed / 279
 npm run build     production bundle, ~112 kB gzip main chunk
 ```
 

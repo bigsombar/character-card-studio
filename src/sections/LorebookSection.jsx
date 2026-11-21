@@ -15,6 +15,7 @@ import {
 } from '@mui/material';
 import Add from '@mui/icons-material/Add';
 import ArrowDropDown from '@mui/icons-material/ArrowDropDown';
+import ContentCopyOutlined from '@mui/icons-material/ContentCopyOutlined';
 import DeleteOutline from '@mui/icons-material/DeleteOutlineOutlined';
 import DownloadOutlined from '@mui/icons-material/DownloadOutlined';
 import DragHandle from '@mui/icons-material/DragHandle';
@@ -173,6 +174,31 @@ export default function LorebookSection({ onImportFile, showAdvancedJson = false
             ...previous,
             entries: [...(previous?.entries ?? []), v3CharacterBookEntryPrototype()],
         }));
+        setExpanded((previous) => [...previous, book?.entries?.length ?? 0]);
+    };
+
+    const addSimilarEntry = () => {
+        updateBook((previous) => {
+            const entries = previous?.entries ?? [];
+            const source = entries[entries.length - 1];
+            if (!source) return previous;
+
+            return {
+                ...previous,
+                entries: [
+                    ...entries,
+                    {
+                        ...source,
+                        comment: undefined,
+                        content: '',
+                        id: undefined,
+                        keys: [],
+                        name: undefined,
+                        secondary_keys: undefined,
+                    },
+                ],
+            };
+        });
         setExpanded((previous) => [...previous, book?.entries?.length ?? 0]);
     };
 
@@ -415,7 +441,17 @@ export default function LorebookSection({ onImportFile, showAdvancedJson = false
                                 {book.entries.length} entr{book.entries.length === 1 ? 'y' : 'ies'}
                             </Typography>
                         </Box>
-                        <Button onClick={addEntry} startIcon={<Add />} variant="contained">Add entry</Button>
+                        <Stack direction="row" spacing={1} sx={{ alignItems: 'center', flexWrap: 'wrap' }} useFlexGap>
+                            <Button
+                                disabled={book.entries.length === 0}
+                                onClick={addSimilarEntry}
+                                startIcon={<ContentCopyOutlined />}
+                                variant="outlined"
+                            >
+                                Add similar
+                            </Button>
+                            <Button onClick={addEntry} startIcon={<Add />} variant="contained">Add entry</Button>
+                        </Stack>
                     </Stack>
 
                     {mismatchedEntries.length > 0 && (
