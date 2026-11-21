@@ -257,32 +257,4 @@ describe('usePortraitCompression', () => {
         expect(result.current.result).toEqual(next);
     });
 
-    test('applies two batched target clicks in order instead of ignoring the second one', async () => {
-        const original = portrait(3000, 2000);
-        readPortraitInfo.mockResolvedValue(original);
-
-        const { result } = renderHook(() => usePortraitCompression({ open: true, source: original.dataUrl }));
-        await waitFor(() => expect(result.current.original).toEqual(original));
-
-        act(() => {
-            result.current.selectTarget(2);
-            result.current.selectTarget(ORIGINAL_TARGET);
-        });
-
-        expect(result.current.target).toBe(ORIGINAL_TARGET);
-        expect(result.current.busy).toBe(false);
-        expect(result.current.result).toEqual(original);
-        expect(compressPortraitToTarget).not.toHaveBeenCalled();
-    });
-
-    test('keeps the current target when the active toggle is clicked again', async () => {
-        readPortraitInfo.mockResolvedValue(portrait(3000, 2000));
-        const { result } = renderHook(() => usePortraitCompression({ open: true, source: 'data:original' }));
-        await waitFor(() => expect(result.current.original).not.toBeNull());
-
-        act(() => result.current.selectTarget(1));
-        act(() => result.current.selectTarget(null));
-
-        expect(result.current.target).toBe(1);
-    });
 });

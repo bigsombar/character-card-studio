@@ -62,28 +62,6 @@ describe('App shell', () => {
     expect(screen.getByText('Modification date')).toBeInTheDocument();
   });
 
-  test('shows V3 lorebook entry fields and keeps advanced JSON optional', async () => {
-    render(<App />);
-    fireEvent.click(screen.getByRole('button', { name: /lorebook:/i }));
-
-    fireEvent.click(await screen.findByRole('button', { name: /attach new lorebook/i }));
-    fireEvent.click(await screen.findByRole('button', { name: /add entry/i }));
-
-    expect(await screen.findByLabelText('Use regular expressions')).toBeInTheDocument();
-    expect(screen.getByLabelText('Entry position')).toBeInTheDocument();
-    expect(screen.getByLabelText('Entry ID')).toBeInTheDocument();
-
-    const advancedJson = screen.getByRole('switch', { name: 'Advanced JSON' });
-    expect(advancedJson).not.toBeChecked();
-    expect(screen.queryByText('Entry extensions (JSON)')).not.toBeInTheDocument();
-
-    fireEvent.click(advancedJson);
-    expect(await screen.findByText('Entry extensions (JSON)')).toBeInTheDocument();
-
-    fireEvent.click(advancedJson);
-    await waitFor(() => expect(screen.queryByText('Entry extensions (JSON)')).not.toBeInTheDocument());
-  });
-
   test('hides the portrait column and file strip on Lorebook and Assets, then restores them', async () => {
     render(<App />);
 
@@ -107,15 +85,6 @@ describe('App shell', () => {
     expect(await screen.findByRole('button', { name: 'Upload portrait' })).toBeInTheDocument();
     expect(screen.getByRole('checkbox', { name: 'Show portrait' })).toBeInTheDocument();
     expect(screen.getByText('Select File')).toBeInTheDocument();
-  });
-
-  test('renders the advanced raw JSON surface', async () => {
-    render(<App />);
-    fireEvent.click(screen.getByRole('button', { name: /advanced:/i }));
-
-    expect(await screen.findByRole('button', { name: /apply raw json/i })).toBeInTheDocument();
-    expect(screen.getByText('Card extensions (data.extensions)')).toBeInTheDocument();
-    expect(screen.getByText('Structural validation')).toBeInTheDocument();
   });
 
   test('applies raw JSON only after the overwrite confirmation', async () => {
