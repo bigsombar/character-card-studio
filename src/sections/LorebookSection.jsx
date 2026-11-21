@@ -56,6 +56,27 @@ function coerceId(value) {
     return /^-?\d+$/.test(value) ? Number(value) : value;
 }
 
+function numericId(value) {
+    if (typeof value === 'number') return Number.isFinite(value) ? value : null;
+    if (typeof value === 'string' && value.trim() !== '') {
+        const numeric = Number(value);
+        return Number.isFinite(numeric) ? numeric : null;
+    }
+    return null;
+}
+
+// New entries continue the numeric ID sequence. If the last entry has no usable ID, fall back to
+// the highest numeric ID in the book so a new entry still gets a unique value.
+function nextEntryId(entries) {
+    const lastId = numericId(entries[entries.length - 1]?.id);
+    if (lastId !== null) return lastId + 1;
+
+    const numericIds = entries
+        .map((entry) => numericId(entry.id))
+        .filter((id) => id !== null);
+    return numericIds.length > 0 ? Math.max(...numericIds) + 1 : 1;
+}
+
 function FieldGroup({ title, children, sx }) {
     return (
         <Box
@@ -170,10 +191,16 @@ export default function LorebookSection({ onImportFile, showAdvancedJson = false
     const addLorebook = () => updateBook(() => v3CharacterBookPrototype());
 
     const addEntry = () => {
-        updateBook((previous) => ({
-            ...previous,
-            entries: [...(previous?.entries ?? []), v3CharacterBookEntryPrototype()],
-        }));
+        updateBook((previous) => {
+            const entries = previous?.entries ?? [];
+            return {
+                ...previous,
+                entries: [
+                    ...entries,
+                    { ...v3CharacterBookEntryPrototype(), id: nextEntryId(entries) },
+                ],
+            };
+        });
         setExpanded((previous) => [...previous, book?.entries?.length ?? 0]);
     };
 
@@ -191,7 +218,7 @@ export default function LorebookSection({ onImportFile, showAdvancedJson = false
                         ...source,
                         comment: undefined,
                         content: '',
-                        id: undefined,
+                        id: nextEntryId(entries),
                         keys: [],
                         name: undefined,
                         secondary_keys: undefined,

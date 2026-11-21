@@ -135,6 +135,26 @@ describe('LorebookSection add similar', () => {
         expect(screen.getByRole('button', { name: /add similar/i })).toBeDisabled();
     });
 
+    test('Add entry starts the ID sequence at 1', () => {
+        render(<StatefulLorebook entries={[]} />);
+
+        fireEvent.click(screen.getByRole('button', { name: /add entry/i }));
+
+        const entries = JSON.parse(screen.getByTestId('card-entries').textContent);
+        expect(entries).toHaveLength(1);
+        expect(entries[0].id).toBe(1);
+    });
+
+    test('Add entry continues from the last numeric ID', () => {
+        render(<StatefulLorebook entries={[makeEntry({ id: 4 }), makeEntry({ id: 9 })]} />);
+
+        fireEvent.click(screen.getByRole('button', { name: /add entry/i }));
+
+        const entries = JSON.parse(screen.getByTestId('card-entries').textContent);
+        expect(entries).toHaveLength(3);
+        expect(entries[2].id).toBe(10);
+    });
+
     test('copies the last entry without its identity, triggers or content', () => {
         const source = makeEntry({
             case_sensitive: true,
@@ -143,7 +163,7 @@ describe('LorebookSection add similar', () => {
             content: 'Boom!',
             enabled: false,
             extensions: { custom: { keep: true }, role: 2 },
-            id: 'klee-1',
+            id: 7,
             insertion_order: 42,
             keys: ['Klee'],
             name: 'Klee',
@@ -165,6 +185,7 @@ describe('LorebookSection add similar', () => {
             content: '',
             enabled: false,
             extensions: { custom: { keep: true }, role: 2 },
+            id: 8,
             insertion_order: 42,
             keys: [],
             position: 'after_char',
@@ -173,14 +194,13 @@ describe('LorebookSection add similar', () => {
             use_regex: true,
         });
         expect(entries[2].comment).toBeUndefined();
-        expect(entries[2].id).toBeUndefined();
         expect(entries[2].name).toBeUndefined();
         expect(entries[2].secondary_keys).toBeUndefined();
 
         expect(entries[1]).toMatchObject({
             comment: 'Klee',
             content: 'Boom!',
-            id: 'klee-1',
+            id: 7,
             keys: ['Klee'],
             name: 'Klee',
             secondary_keys: ['Bomb'],
