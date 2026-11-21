@@ -1,8 +1,9 @@
-import { Box, ButtonBase, Tooltip, Typography } from '@mui/material';
+import { Box, ButtonBase, IconButton, Tooltip, Typography } from '@mui/material';
 import AutoFixHighOutlined from '@mui/icons-material/AutoFixHighOutlined';
 import BadgeOutlined from '@mui/icons-material/BadgeOutlined';
 import ChatBubbleOutlineOutlined from '@mui/icons-material/ChatBubbleOutlineOutlined';
 import DataObjectOutlined from '@mui/icons-material/DataObjectOutlined';
+import GitHubIcon from '@mui/icons-material/GitHub';
 import GroupsOutlined from '@mui/icons-material/GroupsOutlined';
 import ImageOutlined from '@mui/icons-material/ImageOutlined';
 import MenuBookOutlined from '@mui/icons-material/MenuBookOutlined';
@@ -113,21 +114,15 @@ export default function SideRail({ activeSection, onSectionChange }) {
 
             <Box sx={{ flex: 1 }} />
             <Tooltip arrow placement="right" title="Open the GitHub repository">
-                <Typography
+                <IconButton
                     aria-label="Open the GitHub repository"
                     component="a"
                     href="https://github.com/bigsombar/character-card-studio"
                     rel="noopener noreferrer"
-                    target="_blank"
+                    size="small"
                     sx={{
                         color: 'text.secondary',
-                        fontFamily: 'monospace',
-                        fontSize: '0.62rem',
-                        fontWeight: 600,
-                        letterSpacing: '0.08em',
                         mb: 1.5,
-                        textDecoration: 'none',
-                        writingMode: 'vertical-rl',
                         '&:hover': {
                             color: 'primary.main',
                         },
@@ -136,9 +131,10 @@ export default function SideRail({ activeSection, onSectionChange }) {
                             outlineOffset: 2,
                         },
                     }}
+                    target="_blank"
                 >
-                    GITHUB
-                </Typography>
+                    <GitHubIcon sx={{ fontSize: 21 }} />
+                </IconButton>
             </Tooltip>
             <Tooltip arrow placement="right" title="Local-only CCv3 editor">
                 <Typography
