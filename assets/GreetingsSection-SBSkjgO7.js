@@ -1,1 +1,0 @@
-import{t as e}from"./GreetingListEditor-CR1k26tt.js";import{Et as t}from"./Stack-Bxm0uV3F.js";var n=t();function r(){return(0,n.jsx)(e,{kind:`alternate`})}export{r as default};
