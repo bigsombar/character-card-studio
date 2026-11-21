@@ -6,6 +6,8 @@ import {
     Alert,
     Box,
     Button,
+    ButtonBase,
+    Dialog,
     IconButton,
     MenuItem,
     Stack,
@@ -14,7 +16,11 @@ import {
     Typography,
 } from '@mui/material';
 import Add from '@mui/icons-material/Add';
+import ArrowBack from '@mui/icons-material/ArrowBack';
+import ArrowDownward from '@mui/icons-material/ArrowDownward';
 import ArrowDropDown from '@mui/icons-material/ArrowDropDown';
+import ArrowUpward from '@mui/icons-material/ArrowUpward';
+import ChevronRight from '@mui/icons-material/ChevronRight';
 import ContentCopyOutlined from '@mui/icons-material/ContentCopyOutlined';
 import DeleteOutline from '@mui/icons-material/DeleteOutlineOutlined';
 import DownloadOutlined from '@mui/icons-material/DownloadOutlined';
@@ -37,6 +43,7 @@ import {
 } from '../components/LorebookTextFields/LorebookTextFields';
 import { useCard } from '../context/cardContext';
 import { useNotifications } from '../context/NotificationContext';
+import useIsMobile from '../hooks/useIsMobile';
 import { downloadBlob } from '../utils/blob';
 import { safeFilename } from '../utils/filename';
 import { formatKeyLines, parseKeyLines } from '../utils/keyLines';
@@ -160,11 +167,158 @@ function EntryKeysField({ entryIndex, fieldName, label, value, onChange }) {
     );
 }
 
+function entryLabel(entry, index) {
+    return entry.name || entry.comment || `Entry #${index + 1}`;
+}
+
+/**
+ * The complete CCv3 entry form. Shared by the desktop accordion and the mobile full-screen
+ * detail view so both surfaces keep the same fields and validation behavior.
+ */
+function EntryFields({ entry, index, onEntryChange, onEntryKeysChange, onUpdateEntry, showAdvancedJson }) {
+    return (
+        <Stack spacing={2}>
+            <FieldGroup title="Identity">
+                <Box
+                    sx={{
+                        display: 'grid',
+                        gap: 2,
+                        gridTemplateColumns: {
+                            xs: '1fr',
+                            lg: 'minmax(0, 2fr) minmax(160px, 1fr)',
+                        },
+                    }}
+                >
+                    <LorebookEntryString
+                        changeCallback={onEntryChange}
+                        entryIndex={index}
+                        fieldName="name"
+                        label="Name / comment"
+                    />
+                    <DebouncedTextField
+                        helpKey="character_book.entry.id"
+                        label="Entry ID"
+                        name={`id#${index}`}
+                        onChange={onEntryChange}
+                        value={entry.id ?? ''}
+                    />
+                </Box>
+            </FieldGroup>
+
+            <FieldGroup title="Triggers">
+                <Box sx={TWO_COLUMN_GRID}>
+                    <EntryKeysField
+                        entryIndex={index}
+                        fieldName="keys"
+                        label="Keys (one per line)"
+                        onChange={onEntryKeysChange}
+                        value={entry.keys}
+                    />
+                    <EntryKeysField
+                        entryIndex={index}
+                        fieldName="secondary_keys"
+                        label="Secondary keys (one per line)"
+                        onChange={onEntryKeysChange}
+                        value={entry.secondary_keys}
+                    />
+                </Box>
+            </FieldGroup>
+
+            <FieldGroup title="Ordering">
+                <Box sx={PAIR_GRID}>
+                    <LorebookEntryInt
+                        changeCallback={onEntryChange}
+                        entryIndex={index}
+                        fieldName="insertion_order"
+                        label="Insertion order"
+                    />
+                    <LorebookEntryInt
+                        changeCallback={onEntryChange}
+                        entryIndex={index}
+                        fieldName="priority"
+                        label="Priority"
+                    />
+                    <Box sx={{ gridColumn: { sm: '1 / -1' } }}>
+                        <EntryPositionField
+                            entryIndex={index}
+                            onChange={(entryIndex, value) => onUpdateEntry(entryIndex, (current) => ({
+                                ...current,
+                                position: value,
+                            }))}
+                            value={entry.position}
+                        />
+                    </Box>
+                </Box>
+            </FieldGroup>
+
+            <FieldGroup title="Flags">
+                <Box sx={FLAG_GRID}>
+                    <CompactBooleanField
+                        helpKey="character_book.entry.enabled"
+                        label="Enabled"
+                        onChange={(value) => onUpdateEntry(index, (current) => ({ ...current, enabled: value }))}
+                        required
+                        value={entry.enabled}
+                    />
+                    <CompactBooleanField
+                        helpKey="character_book.entry.selective"
+                        label="Require secondary key"
+                        onChange={(value) => onUpdateEntry(index, (current) => ({ ...current, selective: value }))}
+                        value={entry.selective}
+                    />
+                    <CompactBooleanField
+                        helpKey="character_book.entry.case_sensitive"
+                        label="Case sensitive"
+                        onChange={(value) => onUpdateEntry(index, (current) => ({ ...current, case_sensitive: value }))}
+                        value={entry.case_sensitive}
+                    />
+                    <CompactBooleanField
+                        helpKey="character_book.entry.constant"
+                        label="Always active"
+                        onChange={(value) => onUpdateEntry(index, (current) => ({ ...current, constant: value }))}
+                        value={entry.constant}
+                    />
+                    <CompactBooleanField
+                        helpKey="character_book.entry.use_regex"
+                        label="Use regular expressions"
+                        onChange={(value) => onUpdateEntry(index, (current) => ({ ...current, use_regex: value }))}
+                        required
+                        value={entry.use_regex}
+                    />
+                </Box>
+            </FieldGroup>
+
+            <FieldGroup title="Entry text">
+                <LorebookEntryString
+                    changeCallback={onEntryChange}
+                    entryIndex={index}
+                    fieldName="content"
+                    label="Content"
+                    rows={6}
+                />
+            </FieldGroup>
+
+            {showAdvancedJson && (
+                <FieldGroup title="Advanced JSON">
+                    <JsonObjectField
+                        helpKey="character_book.entry.extensions"
+                        label="Entry extensions (JSON)"
+                        onApply={(extensions) => onUpdateEntry(index, (current) => ({ ...current, extensions }))}
+                        rows={2}
+                        value={entry.extensions}
+                    />
+                </FieldGroup>
+            )}
+        </Stack>
+    );
+}
+
 /**
  * Full CCv3 character_book editor, including the V3-only fields that the old generic
  * panel skipped: use_regex, position, id and per-entry extensions.
  */
 export default function LorebookSection({ onImportFile, showAdvancedJson = false }) {
+    const isMobile = useIsMobile();
     const { cardData, patchCardData } = useCard();
     const { notify } = useNotifications();
     const book = cardData.data.character_book;
@@ -172,6 +326,8 @@ export default function LorebookSection({ onImportFile, showAdvancedJson = false
     const [confirmDeleteBook, setConfirmDeleteBook] = useState(false);
     const [confirmBackfill, setConfirmBackfill] = useState(false);
     const [pendingDeleteEntry, setPendingDeleteEntry] = useState(-1);
+    const [mobileEntryIndex, setMobileEntryIndex] = useState(null);
+    const mobileEntry = mobileEntryIndex !== null ? book?.entries?.[mobileEntryIndex] : undefined;
 
     const mismatchedEntries = useMemo(() => {
         if (!book?.entries) return [];
@@ -191,6 +347,7 @@ export default function LorebookSection({ onImportFile, showAdvancedJson = false
     const addLorebook = () => updateBook(() => v3CharacterBookPrototype());
 
     const addEntry = () => {
+        const newIndex = book?.entries?.length ?? 0;
         updateBook((previous) => {
             const entries = previous?.entries ?? [];
             return {
@@ -201,10 +358,12 @@ export default function LorebookSection({ onImportFile, showAdvancedJson = false
                 ],
             };
         });
-        setExpanded((previous) => [...previous, book?.entries?.length ?? 0]);
+        setExpanded((previous) => [...previous, newIndex]);
+        if (isMobile) setMobileEntryIndex(newIndex);
     };
 
     const addSimilarEntry = () => {
+        const newIndex = book?.entries?.length ?? 0;
         updateBook((previous) => {
             const entries = previous?.entries ?? [];
             const source = entries[entries.length - 1];
@@ -226,7 +385,8 @@ export default function LorebookSection({ onImportFile, showAdvancedJson = false
                 ],
             };
         });
-        setExpanded((previous) => [...previous, book?.entries?.length ?? 0]);
+        setExpanded((previous) => [...previous, newIndex]);
+        if (isMobile) setMobileEntryIndex(newIndex);
     };
 
     const deleteBook = () => {
@@ -235,13 +395,41 @@ export default function LorebookSection({ onImportFile, showAdvancedJson = false
     };
 
     const deleteEntry = () => {
+        const deletedIndex = pendingDeleteEntry;
         updateBook((previous) => ({
             ...previous,
-            entries: previous.entries.filter((_entry, index) => index !== pendingDeleteEntry),
+            entries: previous.entries.filter((_entry, index) => index !== deletedIndex),
         }));
         setExpanded([]);
         setPendingDeleteEntry(-1);
+        if (isMobile) {
+            setMobileEntryIndex((current) => {
+                if (current === null) return null;
+                if (current === deletedIndex) return null;
+                return current > deletedIndex ? current - 1 : current;
+            });
+        }
     };
+
+    const moveEntry = (index, direction) => {
+        const target = index + direction;
+        if (!book?.entries || target < 0 || target >= book.entries.length) return;
+
+        updateBook((previous) => {
+            const entries = [...previous.entries];
+            const [moved] = entries.splice(index, 1);
+            entries.splice(target, 0, moved);
+            return { ...previous, entries };
+        });
+        setExpanded([]);
+        setMobileEntryIndex((current) => {
+            if (current === index) return target;
+            if (current === target) return index;
+            return current;
+        });
+    };
+
+    const closeMobileEntry = () => setMobileEntryIndex(null);
 
     const handleMetaChange = (event) => {
         const { name, value } = event.target;
@@ -471,17 +659,19 @@ export default function LorebookSection({ onImportFile, showAdvancedJson = false
                                 {book.entries.length} entr{book.entries.length === 1 ? 'y' : 'ies'}
                             </Typography>
                         </Box>
-                        <Stack direction="row" spacing={1} sx={{ alignItems: 'center', flexWrap: 'wrap' }} useFlexGap>
-                            <Button
-                                disabled={book.entries.length === 0}
-                                onClick={addSimilarEntry}
-                                startIcon={<ContentCopyOutlined />}
-                                variant="outlined"
-                            >
-                                Add similar
-                            </Button>
-                            <Button onClick={addEntry} startIcon={<Add />} variant="contained">Add entry</Button>
-                        </Stack>
+                        {!isMobile && (
+                            <Stack direction="row" spacing={1} sx={{ alignItems: 'center', flexWrap: 'wrap' }} useFlexGap>
+                                <Button
+                                    disabled={book.entries.length === 0}
+                                    onClick={addSimilarEntry}
+                                    startIcon={<ContentCopyOutlined />}
+                                    variant="outlined"
+                                >
+                                    Add similar
+                                </Button>
+                                <Button onClick={addEntry} startIcon={<Add />} variant="contained">Add entry</Button>
+                            </Stack>
+                        )}
                     </Stack>
 
                     {mismatchedEntries.length > 0 && (
@@ -500,6 +690,47 @@ export default function LorebookSection({ onImportFile, showAdvancedJson = false
                                 No entries yet. Add one to define keywords and the text they inject.
                             </Typography>
                         </Box>
+                    ) : isMobile ? (
+                        <Stack spacing={1}>
+                            {book.entries.map((entry, index) => {
+                                const keyCount = entry.keys?.length ?? 0;
+                                const secondaryCount = entry.secondary_keys?.length ?? 0;
+
+                                return (
+                                    <ButtonBase
+                                        key={`mobile-entry-${index}`}
+                                        onClick={() => setMobileEntryIndex(index)}
+                                        sx={{
+                                            alignItems: 'center',
+                                            bgcolor: 'background.paper',
+                                            border: 1,
+                                            borderColor: 'divider',
+                                            borderRadius: 2,
+                                            display: 'flex',
+                                            gap: 1,
+                                            justifyContent: 'space-between',
+                                            p: 1.5,
+                                            textAlign: 'left',
+                                            width: '100%',
+                                            '&:focus-visible': { outline: '2px solid #FFE400', outlineOffset: 2 },
+                                        }}
+                                    >
+                                        <Box sx={{ flex: 1, minWidth: 0 }}>
+                                            <Typography noWrap sx={{ fontWeight: 600 }}>
+                                                {entryLabel(entry, index)}
+                                                {!entry.enabled && ' · disabled'}
+                                            </Typography>
+                                            <Typography color="text.secondary" noWrap sx={{ display: 'block' }} variant="caption">
+                                                {keyCount} key{keyCount === 1 ? '' : 's'}
+                                                {secondaryCount > 0 && ` · ${secondaryCount} secondary`}
+                                                {entry.content?.trim() && ` · ${entry.content.trim().slice(0, 80)}`}
+                                            </Typography>
+                                        </Box>
+                                        <ChevronRight sx={{ color: 'text.secondary', flexShrink: 0 }} />
+                                    </ButtonBase>
+                                );
+                            })}
+                        </Stack>
                     ) : (
                         <DragDropContext onDragEnd={handleDragEnd}>
                             <Droppable droppableId="droppableLorebook">
@@ -533,144 +764,19 @@ export default function LorebookSection({ onImportFile, showAdvancedJson = false
                                                 >
                                                     <AccordionSummary expandIcon={<ArrowDropDown />}>
                                                         <Typography noWrap sx={{ fontWeight: 600 }}>
-                                                            {entry.name || entry.comment || `Entry #${index + 1}`}
+                                                            {entryLabel(entry, index)}
                                                             {!entry.enabled && ' · disabled'}
                                                         </Typography>
                                                     </AccordionSummary>
                                                     <AccordionDetails sx={{ pt: 0 }}>
-                                                        <Stack spacing={2}>
-                                                            <FieldGroup title="Identity">
-                                                                <Box
-                                                                    sx={{
-                                                                        display: 'grid',
-                                                                        gap: 2,
-                                                                        gridTemplateColumns: {
-                                                                            xs: '1fr',
-                                                                            lg: 'minmax(0, 2fr) minmax(160px, 1fr)',
-                                                                        },
-                                                                    }}
-                                                                >
-                                                                    <LorebookEntryString
-                                                                        changeCallback={handleEntryChange}
-                                                                        entryIndex={index}
-                                                                        fieldName="name"
-                                                                        label="Name / comment"
-                                                                    />
-                                                                    <DebouncedTextField
-                                                                        helpKey="character_book.entry.id"
-                                                                        label="Entry ID"
-                                                                        name={`id#${index}`}
-                                                                        onChange={handleEntryChange}
-                                                                        value={entry.id ?? ''}
-                                                                    />
-                                                                </Box>
-                                                            </FieldGroup>
-
-                                                            <FieldGroup title="Triggers">
-                                                                <Box sx={TWO_COLUMN_GRID}>
-                                                                    <EntryKeysField
-                                                                        entryIndex={index}
-                                                                        fieldName="keys"
-                                                                        label="Keys (one per line)"
-                                                                        onChange={handleEntryKeysChange}
-                                                                        value={entry.keys}
-                                                                    />
-                                                                    <EntryKeysField
-                                                                        entryIndex={index}
-                                                                        fieldName="secondary_keys"
-                                                                        label="Secondary keys (one per line)"
-                                                                        onChange={handleEntryKeysChange}
-                                                                        value={entry.secondary_keys}
-                                                                    />
-                                                                </Box>
-                                                            </FieldGroup>
-
-                                                            <FieldGroup title="Ordering">
-                                                                <Box sx={PAIR_GRID}>
-                                                                    <LorebookEntryInt
-                                                                        changeCallback={handleEntryChange}
-                                                                        entryIndex={index}
-                                                                        fieldName="insertion_order"
-                                                                        label="Insertion order"
-                                                                    />
-                                                                    <LorebookEntryInt
-                                                                        changeCallback={handleEntryChange}
-                                                                        entryIndex={index}
-                                                                        fieldName="priority"
-                                                                        label="Priority"
-                                                                    />
-                                                                    <Box sx={{ gridColumn: { sm: '1 / -1' } }}>
-                                                                        <EntryPositionField
-                                                                            entryIndex={index}
-                                                                            onChange={(entryIndex, value) => updateEntry(entryIndex, (current) => ({
-                                                                                ...current,
-                                                                                position: value,
-                                                                            }))}
-                                                                            value={entry.position}
-                                                                        />
-                                                                    </Box>
-                                                                </Box>
-                                                            </FieldGroup>
-
-                                                            <FieldGroup title="Flags">
-                                                                <Box sx={FLAG_GRID}>
-                                                                    <CompactBooleanField
-                                                                        helpKey="character_book.entry.enabled"
-                                                                        label="Enabled"
-                                                                        onChange={(value) => updateEntry(index, (current) => ({ ...current, enabled: value }))}
-                                                                        required
-                                                                        value={entry.enabled}
-                                                                    />
-                                                                    <CompactBooleanField
-                                                                        helpKey="character_book.entry.selective"
-                                                                        label="Require secondary key"
-                                                                        onChange={(value) => updateEntry(index, (current) => ({ ...current, selective: value }))}
-                                                                        value={entry.selective}
-                                                                    />
-                                                                    <CompactBooleanField
-                                                                        helpKey="character_book.entry.case_sensitive"
-                                                                        label="Case sensitive"
-                                                                        onChange={(value) => updateEntry(index, (current) => ({ ...current, case_sensitive: value }))}
-                                                                        value={entry.case_sensitive}
-                                                                    />
-                                                                    <CompactBooleanField
-                                                                        helpKey="character_book.entry.constant"
-                                                                        label="Always active"
-                                                                        onChange={(value) => updateEntry(index, (current) => ({ ...current, constant: value }))}
-                                                                        value={entry.constant}
-                                                                    />
-                                                                    <CompactBooleanField
-                                                                        helpKey="character_book.entry.use_regex"
-                                                                        label="Use regular expressions"
-                                                                        onChange={(value) => updateEntry(index, (current) => ({ ...current, use_regex: value }))}
-                                                                        required
-                                                                        value={entry.use_regex}
-                                                                    />
-                                                                </Box>
-                                                            </FieldGroup>
-
-                                                            <FieldGroup title="Entry text">
-                                                                <LorebookEntryString
-                                                                    changeCallback={handleEntryChange}
-                                                                    entryIndex={index}
-                                                                    fieldName="content"
-                                                                    label="Content"
-                                                                    rows={6}
-                                                                />
-                                                            </FieldGroup>
-
-                                                            {showAdvancedJson && (
-                                                                <FieldGroup title="Advanced JSON">
-                                                                    <JsonObjectField
-                                                                        helpKey="character_book.entry.extensions"
-                                                                        label="Entry extensions (JSON)"
-                                                                        onApply={(extensions) => updateEntry(index, (current) => ({ ...current, extensions }))}
-                                                                        rows={2}
-                                                                        value={entry.extensions}
-                                                                    />
-                                                                </FieldGroup>
-                                                            )}
-                                                        </Stack>
+                                                        <EntryFields
+                                                            entry={entry}
+                                                            index={index}
+                                                            onEntryChange={handleEntryChange}
+                                                            onEntryKeysChange={handleEntryKeysChange}
+                                                            onUpdateEntry={updateEntry}
+                                                            showAdvancedJson={showAdvancedJson}
+                                                        />
                                                     </AccordionDetails>
                                                 </Accordion>
                                                 <Tooltip title="Delete this entry">
@@ -693,8 +799,106 @@ export default function LorebookSection({ onImportFile, showAdvancedJson = false
                     </Droppable>
                 </DragDropContext>
             )}
+
+                    {isMobile && (
+                        <Box
+                            sx={{
+                                bgcolor: 'background.default',
+                                borderTop: 1,
+                                borderColor: 'divider',
+                                bottom: 0,
+                                display: 'flex',
+                                gap: 1,
+                                mt: 1,
+                                position: 'sticky',
+                                pt: 1,
+                                zIndex: 2,
+                            }}
+                        >
+                            <Button
+                                disabled={book.entries.length === 0}
+                                onClick={addSimilarEntry}
+                                startIcon={<ContentCopyOutlined />}
+                                sx={{ flex: 1 }}
+                                variant="outlined"
+                            >
+                                Add similar
+                            </Button>
+                            <Button onClick={addEntry} startIcon={<Add />} sx={{ flex: 1 }} variant="contained">
+                                Add entry
+                            </Button>
+                        </Box>
+                    )}
                 </Stack>
             </Box>
+
+            <Dialog
+                aria-labelledby="lorebook-entry-title"
+                fullScreen
+                onClose={closeMobileEntry}
+                open={Boolean(mobileEntry)}
+            >
+                {mobileEntry && (
+                    <Box sx={{ bgcolor: 'background.default', display: 'flex', flexDirection: 'column', height: '100%' }}>
+                        <Box
+                            component="header"
+                            sx={{
+                                alignItems: 'center',
+                                borderBottom: 1,
+                                borderColor: 'divider',
+                                display: 'flex',
+                                gap: 0.5,
+                                minHeight: 56,
+                                pt: 'env(safe-area-inset-top)',
+                                px: 1,
+                            }}
+                        >
+                            <IconButton aria-label="Back to entries" onClick={closeMobileEntry}>
+                                <ArrowBack />
+                            </IconButton>
+                            <Box sx={{ flex: 1, minWidth: 0 }}>
+                                <Typography component="h2" id="lorebook-entry-title" noWrap sx={{ fontWeight: 600 }}>
+                                    {entryLabel(mobileEntry, mobileEntryIndex)}
+                                </Typography>
+                                <Typography color="text.secondary" variant="caption">
+                                    Entry {mobileEntryIndex + 1} of {book.entries.length}
+                                </Typography>
+                            </Box>
+                            <IconButton
+                                aria-label="Move entry up"
+                                disabled={mobileEntryIndex === 0}
+                                onClick={() => moveEntry(mobileEntryIndex, -1)}
+                            >
+                                <ArrowUpward />
+                            </IconButton>
+                            <IconButton
+                                aria-label="Move entry down"
+                                disabled={mobileEntryIndex === book.entries.length - 1}
+                                onClick={() => moveEntry(mobileEntryIndex, 1)}
+                            >
+                                <ArrowDownward />
+                            </IconButton>
+                            <IconButton
+                                aria-label="Delete entry"
+                                color="error"
+                                onClick={() => setPendingDeleteEntry(mobileEntryIndex)}
+                            >
+                                <DeleteOutline />
+                            </IconButton>
+                        </Box>
+                        <Box sx={{ flex: 1, overflow: 'auto', p: 2, pb: 'calc(24px + env(safe-area-inset-bottom))' }}>
+                            <EntryFields
+                                entry={mobileEntry}
+                                index={mobileEntryIndex}
+                                onEntryChange={handleEntryChange}
+                                onEntryKeysChange={handleEntryKeysChange}
+                                onUpdateEntry={updateEntry}
+                                showAdvancedJson={showAdvancedJson}
+                            />
+                        </Box>
+                    </Box>
+                )}
+            </Dialog>
 
             <ConfirmationDialog
                 dialogContent="Delete this lorebook and all of its entries? This action cannot be undone."
