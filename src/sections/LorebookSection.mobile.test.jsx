@@ -75,10 +75,10 @@ describe('LorebookSection mobile master-detail', () => {
     test('opens an entry in a full-screen editor and returns to the list', async () => {
         render(<StatefulLorebook entries={[makeEntry()]} />);
 
-        expect(screen.getByRole('button', { name: /alice/i })).toBeInTheDocument();
+        expect(screen.getByRole('button', { name: /^Alice/ })).toBeInTheDocument();
         expect(screen.queryByText('Identity')).not.toBeInTheDocument();
 
-        fireEvent.click(screen.getByRole('button', { name: /alice/i }));
+        fireEvent.click(screen.getByRole('button', { name: /^Alice/ }));
 
         const dialog = await screen.findByRole('dialog');
         expect(within(dialog).getByText('Identity')).toBeInTheDocument();
@@ -95,13 +95,28 @@ describe('LorebookSection mobile master-detail', () => {
             makeEntry({ comment: 'Klee', content: 'Klee loves bombs.', id: 2, name: 'Klee' }),
         ]} />);
 
-        fireEvent.click(screen.getByRole('button', { name: /alice/i }));
+        fireEvent.click(screen.getByRole('button', { name: /^Alice/ }));
         const dialog = await screen.findByRole('dialog');
         fireEvent.click(within(dialog).getByRole('button', { name: 'Move entry down' }));
 
         const entries = JSON.parse(screen.getByTestId('card-entries').textContent);
         expect(entries.map((entry) => entry.name)).toEqual(['Klee', 'Alice']);
+        expect(entries.map((entry) => entry.id)).toEqual([1, 2]);
         expect(within(screen.getByRole('dialog')).getByRole('heading', { name: 'Alice' })).toBeInTheDocument();
+    });
+
+    test('moves entries from the list without opening the editor', () => {
+        render(<StatefulLorebook entries={[
+            makeEntry(),
+            makeEntry({ comment: 'Klee', content: 'Klee loves bombs.', id: 2, name: 'Klee' }),
+        ]} />);
+
+        fireEvent.click(screen.getByRole('button', { name: 'Move Alice down' }));
+
+        const entries = JSON.parse(screen.getByTestId('card-entries').textContent);
+        expect(entries.map((entry) => entry.name)).toEqual(['Klee', 'Alice']);
+        expect(entries.map((entry) => entry.id)).toEqual([1, 2]);
+        expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
     });
 
     test('keeps Add similar disabled until an entry exists and opens new entries', async () => {
@@ -120,3 +135,4 @@ describe('LorebookSection mobile master-detail', () => {
         expect(within(dialog).getByText('Identity')).toBeInTheDocument();
     });
 });
+

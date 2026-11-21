@@ -39,7 +39,7 @@ export default function PortraitPanel({ compact = false, displayPortrait, fileNa
                 sx={{
                     alignItems: 'center',
                     alignSelf: compact ? 'center' : undefined,
-                    aspectRatio: compact ? '16 / 9' : { xs: '16 / 10', md: undefined },
+                    aspectRatio: compact ? undefined : { xs: '16 / 10', md: undefined },
                     bgcolor: 'background.default',
                     border: 1,
                     borderColor: 'divider',
@@ -48,8 +48,9 @@ export default function PortraitPanel({ compact = false, displayPortrait, fileNa
                     display: 'flex',
                     flex: compact ? '0 0 auto' : { xs: '0 0 auto', md: 1 },
                     justifyContent: 'center',
-                    maxHeight: compact ? 180 : { xs: 240, md: 'none' },
+                    maxHeight: compact ? 240 : { xs: 240, md: 'none' },
                     maxWidth: compact ? 320 : undefined,
+                    minHeight: compact ? 160 : undefined,
                     overflow: 'hidden',
                     width: '100%',
                     '&:focus-visible': { outline: '2px solid #FFE400', outlineOffset: 2 },
@@ -60,7 +61,9 @@ export default function PortraitPanel({ compact = false, displayPortrait, fileNa
                     <img
                         alt={fileName || 'Uploaded portrait'}
                         src={displayPortrait}
-                        style={{ height: '100%', objectFit: 'cover', width: '100%' }}
+                        style={compact
+                            ? { display: 'block', height: 'auto', maxHeight: 220, objectFit: 'contain', width: '100%' }
+                            : { height: '100%', objectFit: 'cover', width: '100%' }}
                     />
                 ) : (
                     <PersonOutline sx={{ color: 'text.disabled', fontSize: 96 }} />

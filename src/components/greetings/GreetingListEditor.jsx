@@ -6,10 +6,13 @@ import {
     Box,
     Button,
     IconButton,
+    Stack,
     Tooltip,
     Typography,
 } from '@mui/material';
+import ArrowDownward from '@mui/icons-material/ArrowDownward';
 import ArrowDropDown from '@mui/icons-material/ArrowDropDown';
+import ArrowUpward from '@mui/icons-material/ArrowUpward';
 import DeleteOutline from '@mui/icons-material/DeleteOutlineOutlined';
 import DragHandle from '@mui/icons-material/DragHandle';
 import KeyboardDoubleArrowUp from '@mui/icons-material/KeyboardDoubleArrowUp';
@@ -19,6 +22,7 @@ import { DragDropContext, Draggable, Droppable } from '@hello-pangea/dnd';
 import AltGreetingTextField, { GroupGreetingTextField } from '../AltGreetingTextField/AltGreetingTextField';
 import ConfirmationDialog from '../ConfirmationDialog/ConfirmationDialog';
 import { useCard } from '../../context/cardContext';
+import useIsMobile from '../../hooks/useIsMobile';
 
 const KIND_CONFIG = {
     alternate: {
@@ -46,6 +50,7 @@ const KIND_CONFIG = {
 /** Reorderable greeting list used by both alternate and group-only greetings. */
 export default function GreetingListEditor({ kind = 'alternate' }) {
     const config = KIND_CONFIG[kind];
+    const isMobile = useIsMobile();
     const { cardData, patchCardData } = useCard();
     const greetings = cardData.data[config.fieldName] ?? [];
     const [expanded, setExpanded] = useState([]);
@@ -85,6 +90,22 @@ export default function GreetingListEditor({ kind = 'alternate' }) {
             if (panel === result.source.index) return result.destination.index;
             if (panel > result.source.index && panel <= result.destination.index) return panel - 1;
             if (panel < result.source.index && panel >= result.destination.index) return panel + 1;
+            return panel;
+        }));
+    };
+
+    const moveGreeting = (index, direction) => {
+        const target = index + direction;
+        if (target < 0 || target >= greetings.length) return;
+
+        const items = [...greetings];
+        const [moved] = items.splice(index, 1);
+        items.splice(target, 0, moved);
+        updateGreetings(items);
+        setExpanded((previous) => previous.map((panel) => {
+            if (panel === index) return target;
+            if (panel > index && panel <= target) return panel - 1;
+            if (panel < index && panel >= target) return panel + 1;
             return panel;
         }));
     };
@@ -146,11 +167,15 @@ export default function GreetingListEditor({ kind = 'alternate' }) {
                                             <Box
                                                 ref={dragProvided.innerRef}
                                                 {...dragProvided.draggableProps}
-                                                sx={{ display: 'flex', gap: 1.5 }}
+                                                sx={{ display: 'flex', gap: 1.5, minWidth: 0 }}
                                                 style={dragProvided.draggableProps.style}
                                             >
                                                 <Tooltip title="Drag to reorder">
-                                                    <IconButton {...dragProvided.dragHandleProps} aria-label={`Reorder ${config.heading} ${index + 1}`}>
+                                                    <IconButton
+                                                        {...dragProvided.dragHandleProps}
+                                                        aria-label={`Reorder ${config.heading} ${index + 1}`}
+                                                        sx={{ display: { xs: 'none', md: 'inline-flex' }, flexShrink: 0 }}
+                                                    >
                                                         <DragHandle />
                                                     </IconButton>
                                                 </Tooltip>
@@ -158,7 +183,13 @@ export default function GreetingListEditor({ kind = 'alternate' }) {
                                                     expanded={expanded.includes(index)}
                                                     onChange={handleAccordionChange(index)}
                                                     slotProps={{ transition: { unmountOnExit: true } }}
-                                                    sx={{ mb: 2, mt: 1, width: '100%' }}
+                                                    sx={{
+                                                        mb: 2,
+                                                        minWidth: 0,
+                                                        mt: 1,
+                                                        width: '100%',
+                                                        '& .MuiAccordionSummary-content': { minWidth: 0 },
+                                                    }}
                                                 >
                                                     <AccordionSummary expandIcon={<ArrowDropDown />}>
                                                         <Typography noWrap sx={{ fontWeight: 600 }}>
@@ -174,20 +205,77 @@ export default function GreetingListEditor({ kind = 'alternate' }) {
                                                             helpKey={config.helpKey}
                                                             label={`${config.heading} #${index + 1}`}
                                                         />
+                                                        {isMobile && (
+                                                            <Stack
+                                                                direction="row"
+                                                                spacing={0.5}
+                                                                sx={{
+                                                                    alignItems: 'center',
+                                                                    flexWrap: 'wrap',
+                                                                    justifyContent: 'flex-end',
+                                                                    mt: 1.5,
+                                                                }}
+                                                            >
+                                                                <IconButton
+                                                                    aria-label={`Move greeting ${index + 1} up`}
+                                                                    disabled={index === 0}
+                                                                    onClick={() => moveGreeting(index, -1)}
+                                                                    size="small"
+                                                                >
+                                                                    <ArrowUpward fontSize="small" />
+                                                                </IconButton>
+                                                                <IconButton
+                                                                    aria-label={`Move greeting ${index + 1} down`}
+                                                                    disabled={index === greetings.length - 1}
+                                                                    onClick={() => moveGreeting(index, 1)}
+                                                                    size="small"
+                                                                >
+                                                                    <ArrowDownward fontSize="small" />
+                                                                </IconButton>
+                                                                {config.allowPromote && (
+                                                                    <Button
+                                                                        onClick={() => setPendingPromote(index)}
+                                                                        size="small"
+                                                                        startIcon={<KeyboardDoubleArrowUp />}
+                                                                    >
+                                                                        Promote
+                                                                    </Button>
+                                                                )}
+                                                                <Button
+                                                                    color="error"
+                                                                    onClick={() => setPendingDelete(index)}
+                                                                    size="small"
+                                                                    startIcon={<DeleteOutline />}
+                                                                >
+                                                                    Delete
+                                                                </Button>
+                                                            </Stack>
+                                                        )}
                                                     </AccordionDetails>
                                                 </Accordion>
-                                                {config.allowPromote && (
+                                                {!isMobile && config.allowPromote && (
                                                     <Tooltip title="Promote this greeting to the first message">
-                                                        <IconButton aria-label={`Promote greeting ${index + 1}`} onClick={() => setPendingPromote(index)}>
+                                                        <IconButton
+                                                            aria-label={`Promote greeting ${index + 1}`}
+                                                            onClick={() => setPendingPromote(index)}
+                                                            sx={{ flexShrink: 0 }}
+                                                        >
                                                             <KeyboardDoubleArrowUp />
                                                         </IconButton>
                                                     </Tooltip>
                                                 )}
-                                                <Tooltip title="Delete this greeting">
-                                                    <IconButton aria-label={`Delete greeting ${index + 1}`} color="error" onClick={() => setPendingDelete(index)}>
-                                                        <DeleteOutline />
-                                                    </IconButton>
-                                                </Tooltip>
+                                                {!isMobile && (
+                                                    <Tooltip title="Delete this greeting">
+                                                        <IconButton
+                                                            aria-label={`Delete greeting ${index + 1}`}
+                                                            color="error"
+                                                            onClick={() => setPendingDelete(index)}
+                                                            sx={{ flexShrink: 0 }}
+                                                        >
+                                                            <DeleteOutline />
+                                                        </IconButton>
+                                                    </Tooltip>
+                                                )}
                                             </Box>
                                         )}
                                     </Draggable>

@@ -84,6 +84,12 @@ function nextEntryId(entries) {
     return numericIds.length > 0 ? Math.max(...numericIds) + 1 : 1;
 }
 
+// Reordering makes the entry ID reflect its new position, so a moved fourth entry that lands in
+// slot six receives ID 6 and every other entry is renumbered consistently.
+function withPositionalIds(entries) {
+    return entries.map((entry, index) => ({ ...entry, id: index + 1 }));
+}
+
 function FieldGroup({ title, children, sx }) {
     return (
         <Box
@@ -398,7 +404,7 @@ export default function LorebookSection({ onImportFile, showAdvancedJson = false
         const deletedIndex = pendingDeleteEntry;
         updateBook((previous) => ({
             ...previous,
-            entries: previous.entries.filter((_entry, index) => index !== deletedIndex),
+            entries: withPositionalIds(previous.entries.filter((_entry, index) => index !== deletedIndex)),
         }));
         setExpanded([]);
         setPendingDeleteEntry(-1);
@@ -419,7 +425,7 @@ export default function LorebookSection({ onImportFile, showAdvancedJson = false
             const entries = [...previous.entries];
             const [moved] = entries.splice(index, 1);
             entries.splice(target, 0, moved);
-            return { ...previous, entries };
+            return { ...previous, entries: withPositionalIds(entries) };
         });
         setExpanded([]);
         setMobileEntryIndex((current) => {
@@ -479,7 +485,7 @@ export default function LorebookSection({ onImportFile, showAdvancedJson = false
             const items = [...previous.entries];
             const [moved] = items.splice(result.source.index, 1);
             items.splice(result.destination.index, 0, moved);
-            return { ...previous, entries: items };
+            return { ...previous, entries: withPositionalIds(items) };
         });
         setExpanded((previous) => previous.map((panel) => {
             if (panel === result.source.index) return result.destination.index;
@@ -697,9 +703,8 @@ export default function LorebookSection({ onImportFile, showAdvancedJson = false
                                 const secondaryCount = entry.secondary_keys?.length ?? 0;
 
                                 return (
-                                    <ButtonBase
+                                    <Box
                                         key={`mobile-entry-${index}`}
-                                        onClick={() => setMobileEntryIndex(index)}
                                         sx={{
                                             alignItems: 'center',
                                             bgcolor: 'background.paper',
@@ -707,27 +712,58 @@ export default function LorebookSection({ onImportFile, showAdvancedJson = false
                                             borderColor: 'divider',
                                             borderRadius: 2,
                                             display: 'flex',
-                                            gap: 1,
-                                            justifyContent: 'space-between',
-                                            p: 1.5,
-                                            textAlign: 'left',
+                                            gap: 0.5,
+                                            p: 1,
                                             width: '100%',
-                                            '&:focus-visible': { outline: '2px solid #FFE400', outlineOffset: 2 },
                                         }}
                                     >
-                                        <Box sx={{ flex: 1, minWidth: 0 }}>
-                                            <Typography noWrap sx={{ fontWeight: 600 }}>
-                                                {entryLabel(entry, index)}
-                                                {!entry.enabled && ' · disabled'}
-                                            </Typography>
-                                            <Typography color="text.secondary" noWrap sx={{ display: 'block' }} variant="caption">
-                                                {keyCount} key{keyCount === 1 ? '' : 's'}
-                                                {secondaryCount > 0 && ` · ${secondaryCount} secondary`}
-                                                {entry.content?.trim() && ` · ${entry.content.trim().slice(0, 80)}`}
-                                            </Typography>
-                                        </Box>
-                                        <ChevronRight sx={{ color: 'text.secondary', flexShrink: 0 }} />
-                                    </ButtonBase>
+                                        <ButtonBase
+                                            onClick={() => setMobileEntryIndex(index)}
+                                            sx={{
+                                                alignItems: 'center',
+                                                borderRadius: 1.5,
+                                                display: 'flex',
+                                                flex: 1,
+                                                gap: 1,
+                                                justifyContent: 'space-between',
+                                                minWidth: 0,
+                                                p: 0.5,
+                                                textAlign: 'left',
+                                                '&:focus-visible': { outline: '2px solid #FFE400', outlineOffset: 2 },
+                                            }}
+                                        >
+                                            <Box sx={{ flex: 1, minWidth: 0 }}>
+                                                <Typography noWrap sx={{ fontWeight: 600 }}>
+                                                    {entryLabel(entry, index)}
+                                                    {!entry.enabled && ' · disabled'}
+                                                </Typography>
+                                                <Typography color="text.secondary" noWrap sx={{ display: 'block' }} variant="caption">
+                                                    {keyCount} key{keyCount === 1 ? '' : 's'}
+                                                    {secondaryCount > 0 && ` · ${secondaryCount} secondary`}
+                                                    {entry.content?.trim() && ` · ${entry.content.trim().slice(0, 80)}`}
+                                                </Typography>
+                                            </Box>
+                                            <ChevronRight sx={{ color: 'text.secondary', flexShrink: 0 }} />
+                                        </ButtonBase>
+                                        <Stack direction="row" sx={{ flexShrink: 0 }}>
+                                            <IconButton
+                                                aria-label={`Move ${entryLabel(entry, index)} up`}
+                                                disabled={index === 0}
+                                                onClick={() => moveEntry(index, -1)}
+                                                size="small"
+                                            >
+                                                <ArrowUpward fontSize="small" />
+                                            </IconButton>
+                                            <IconButton
+                                                aria-label={`Move ${entryLabel(entry, index)} down`}
+                                                disabled={index === book.entries.length - 1}
+                                                onClick={() => moveEntry(index, 1)}
+                                                size="small"
+                                            >
+                                                <ArrowDownward fontSize="small" />
+                                            </IconButton>
+                                        </Stack>
+                                    </Box>
                                 );
                             })}
                         </Stack>
