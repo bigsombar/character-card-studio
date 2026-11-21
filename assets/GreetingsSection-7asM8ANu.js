@@ -1,0 +1,1 @@
+import{t as e}from"./GreetingListEditor-BJ9SCML2.js";import{jt as t}from"./Modal-Ci8SwBkm.js";var n=t();function r(){return(0,n.jsx)(e,{kind:`alternate`})}export{r as default};
