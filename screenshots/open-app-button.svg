@@ -1,0 +1,33 @@
+<svg width="880" height="76" viewBox="0 0 880 76" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Outer panel (Surface #2F2F2F + Border #404040) -->
+  <rect x="1" y="1" width="878" height="74" rx="12" fill="#2F2F2F" stroke="#404040" stroke-width="1.5"/>
+
+  <!-- Left side: title and description -->
+  <g transform="translate(24, 0)">
+    <!-- Status indicator (Jade #14A76C) -->
+    <circle cx="6" cy="27" r="4.5" fill="#14A76C"/>
+
+    <!-- Main heading (Text #F2F0E9) -->
+    <text x="18" y="32" fill="#F2F0E9" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="17" font-weight="700" letter-spacing="0.2">
+      Character Card Studio
+    </text>
+
+    <!-- Secondary text (Muted text #B3B3B3) -->
+    <text x="0" y="54" fill="#B3B3B3" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="13" font-weight="400">
+      Free local-first CCv3 &amp; CHARX browser editor — no account or installation
+    </text>
+  </g>
+
+  <!-- Right side: primary action button (Yellow #FFE400 + On accent #171717) -->
+  <g transform="translate(664, 16)">
+    <rect x="0" y="0" width="192" height="44" rx="8" fill="#FFE400"/>
+    
+    <!-- Button label -->
+    <text x="24" y="27" fill="#171717" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="14.5" font-weight="700">
+      Open the App
+    </text>
+    
+    <!-- Arrow -->
+    <path d="M148 22H164M164 22L158 16M164 22L158 28" stroke="#171717" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+  </g>
+</svg>

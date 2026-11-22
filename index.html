@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" href="/favicon.ico" sizes="16x16 32x32 48x48 64x64" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="theme-color" content="#272727" />
+    <meta name="google-site-verification" content="ZieER5urh4GFkZaYzNdJFRo2cnQopwOkf04fj9y6kF8" />
+    <meta name="yandex-verification" content="6433fc89c7c70344" />
+    <meta name="msvalidate.01" content="2643BF72E05CF1193FF728D24F07BCAE" />
+    <meta name="robots" content="index, follow, max-image-preview:large" />
+
+    <title>Character Card Studio — V3 Character Card &amp; Lorebook Editor</title>
+    <meta
+      name="description"
+      content="Edit Character Card V3 (CCv3) cards and lorebooks for SillyTavern. Import PNG, JSON or CHARX, manage embedded images and audio, and export CCv3 JSON, PNG or CHARX."
+    />
+    <meta
+      name="keywords"
+      content="Character Card V3, CCv3, SillyTavern, character card editor, lorebook editor, CHARX, PNG, JSON, AI character cards"
+    />
+    <link rel="canonical" href="https://bigsombar.github.io/character-card-studio/" />
+
+    <meta property="og:title" content="Character Card Studio — V3 Character Card &amp; Lorebook Editor" />
+    <meta
+      property="og:description"
+      content="Edit Character Card V3 (CCv3) cards and lorebooks for SillyTavern. Import PNG, JSON or CHARX, manage embedded images and audio, and export CCv3 JSON, PNG or CHARX."
+    />
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://bigsombar.github.io/character-card-studio/" />
+    <meta property="og:site_name" content="Character Card Studio" />
+    <meta property="og:image" content="https://bigsombar.github.io/character-card-studio/logo512.png" />
+    <meta property="og:image:alt" content="Character Card Studio editor icon" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="Character Card Studio — V3 Character Card &amp; Lorebook Editor" />
+    <meta
+      name="twitter:description"
+      content="Edit Character Card V3 (CCv3) cards and lorebooks for SillyTavern. Import PNG, JSON or CHARX, manage embedded images and audio, and export CCv3 JSON, PNG or CHARX."
+    />
+    <meta name="twitter:image" content="https://bigsombar.github.io/character-card-studio/logo512.png" />
+
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+    <link rel="manifest" href="/manifest.json" />
+
+    <style>
+      body {
+        background: #272727;
+        margin: 0;
+      }
+
+      .seo-fallback {
+        background: #272727;
+        color: #f2f0e9;
+        font-family: 'Inter Variable', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        line-height: 1.6;
+        min-height: 100vh;
+        padding: 3rem 1.25rem;
+      }
+
+      .seo-fallback__inner {
+        margin: 0 auto;
+        max-width: 760px;
+      }
+
+      .seo-fallback__eyebrow {
+        color: #b3b3b3;
+        font-family: 'JetBrains Mono Variable', 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+        font-size: 0.72rem;
+        letter-spacing: 0.12em;
+        margin: 0 0 0.75rem;
+        text-transform: uppercase;
+      }
+
+      .seo-fallback h1 {
+        font-size: clamp(1.75rem, 4vw, 2.5rem);
+        line-height: 1.15;
+        margin: 0 0 1rem;
+      }
+
+      .seo-fallback h2 {
+        color: #ffe400;
+        font-size: 1.05rem;
+        letter-spacing: 0.02em;
+        margin: 2rem 0 0.75rem;
+      }
+
+      .seo-fallback p,
+      .seo-fallback li {
+        color: #d8d5cc;
+      }
+
+      .seo-fallback a {
+        color: #ffe400;
+      }
+
+      .seo-fallback ul {
+        padding-left: 1.25rem;
+      }
+
+      .seo-fallback li {
+        margin: 0.35rem 0;
+      }
+    </style>
+
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "WebApplication",
+        "name": "Character Card Studio",
+        "url": "https://bigsombar.github.io/character-card-studio/",
+        "description": "Online editor for Character Card V3 (CCv3) cards and lorebooks with PNG, JSON and CHARX import and export.",
+        "applicationCategory": "DesignApplication",
+        "operatingSystem": "Any web browser",
+        "offers": {
+          "@type": "Offer",
+          "price": "0",
+          "priceCurrency": "USD"
+        },
+        "license": "https://www.gnu.org/licenses/agpl-3.0.html"
+      }
+    </script>
+  </head>
+  <body>
+    <div id="app">
+      <main class="seo-fallback">
+        <div class="seo-fallback__inner">
+          <p class="seo-fallback__eyebrow">CARD STUDIO // V3 EDITOR</p>
+          <h1>Character Card Studio — V3 character card and lorebook editor</h1>
+          <p>
+            Character Card Studio is a free, local-first online editor for
+            <strong>Character Card V3 (CCv3)</strong> cards and lorebooks used with SillyTavern and
+            compatible AI roleplay frontends. Create, edit, validate and export character cards
+            without installing desktop software.
+          </p>
+
+          <h2>What you can edit</h2>
+          <ul>
+            <li>Character name, description, personality, scenario and first message.</li>
+            <li>Alternate greetings, group-only greetings, example messages and creator notes.</li>
+            <li>System prompts, post-history instructions, tags, source links and multilingual creator notes.</li>
+            <li>
+              Full CCv3 lorebooks: entries, keys, secondary keys, regex triggers, position,
+              priority, insertion order, per-entry extensions and character book settings.
+            </li>
+            <li>Embedded images, audio and video, including linked media downloads and image compression.</li>
+          </ul>
+
+          <h2>Supported formats</h2>
+          <ul>
+            <li><strong>CHARX</strong> archives with card.json and embedded media.</li>
+            <li><strong>V3 JSON</strong> cards with optional inline data URLs.</li>
+            <li><strong>V3 PNG</strong> cards with an embedded ccv3 chunk.</li>
+            <li>V2 PNG and V2 JSON cards, upcast to V3 on import. V2 export is not supported.</li>
+          </ul>
+
+          <h2>Local-first and private</h2>
+          <p>
+            Cards and media are stored in your browser using IndexedDB. There is no account, backend
+            or telemetry. Export a backup before clearing site data.
+          </p>
+
+          <p>
+            <a href="https://bigsombar.github.io/character-card-studio/">Open Character Card Studio</a>
+            (JavaScript required) ·
+            <a href="https://github.com/bigsombar/character-card-studio">Source code on GitHub</a> ·
+            <a href="https://github.com/bigsombar/character-card-studio/blob/main/docs/CHARX.md">CHARX guide</a>
+          </p>
+        </div>
+      </main>
+    </div>
+    <script type="module" src="/src/index.jsx"></script>
+  </body>
+</html>
