@@ -12,15 +12,19 @@ import { useNotifications } from '../context/NotificationContext';
 export const PORTRAIT_STORAGE_KEY = 'portraitPreview';
 
 /**
- * Remembers the portrait across reloads. A large data URL can exceed the ~5 MB localStorage
- * quota; in that case the stale copy is dropped instead of silently restoring another card.
+ * Mirrors the active portrait into localStorage so the next visit starts with the right image.
+ *
+ * Browsers cap this storage at a few megabytes per origin, and a photo-sized data URL can push a
+ * write past that cap. The cached copy is discarded on failure by design: a surviving entry would
+ * belong to whichever card was open before, and the editor would reopen with the wrong portrait.
+ * The in-memory portrait is unaffected, so only the across-reload behaviour is lost.
  */
 function persistPortrait(dataUrl) {
     try {
         localStorage.setItem(PORTRAIT_STORAGE_KEY, dataUrl);
     } catch (error) {
         localStorage.removeItem(PORTRAIT_STORAGE_KEY);
-        console.warn('Portrait is too large to keep across page reloads:', error);
+        console.warn('Portrait not cached; the next visit will start from the default image.', error);
     }
 }
 

@@ -99,12 +99,18 @@ The production build is created with `npm run build`.
 ## License
 
 Character Card Studio is licensed under the
-[GNU Affero General Public License v3.0](LICENSE) (`AGPL-3.0`).
+[GNU Affero General Public License v3.0](LICENSE) (`AGPL-3.0`). Third-party material bundled with the
+project is listed in [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md).
 
 ## Credits
 
-Inspired by the original V2 character card editor by
-[zer0gear](https://github.com/zer0thgear/character-card-editor).
+Inspired by [zer0thgear's Tavern Card Editor](https://github.com/zer0thgear/character-card-editor),
+published as "zer0gear", an early granular character card editor with V2 import and V3-first saving.
+Character Card Studio is a rewritten successor to that editor.
+
+Character Card V3 specification by [Kwaroran](https://github.com/kwaroran/character-card-spec-v3)
+(MIT). The copy vendored in [SPEC_V3.md](SPEC_V3.md) is reproduced verbatim; see
+[THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md).
 
 Site icon: [Anime](https://icons8.com/icon/MTivAq0U9TSN/anime) icon by
 [Icons8](https://icons8.com). The attribution also appears in the site footer as required by the
