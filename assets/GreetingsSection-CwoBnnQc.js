@@ -1,0 +1,1 @@
+import{t as e}from"./GreetingListEditor-D7lcKcTH.js";import{Dt as t}from"./Stack-BLkBccmD.js";var n=t();function r(){return(0,n.jsx)(e,{kind:`alternate`})}export{r as default};
