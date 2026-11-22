@@ -1,0 +1,1 @@
+var e=`chara_card_v3`;export{e as t};

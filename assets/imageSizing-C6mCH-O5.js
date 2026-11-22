@@ -1,0 +1,1 @@
+var e=[2,1.5,1,.5];function t(e){return Math.max(16,Math.round(e/16)*16)}function n(e,n,r){let i=Math.max(1,e*n),a=Math.max(1,r*1e6),o=Math.sqrt(a/i);return{height:t(n*o),width:t(e*o)}}function r(e,t,r){let i=n(e,t,r);return i.width<=e&&i.height<=t&&(i.width<e||i.height<t)}function i(e,t){return`${Number((e*t/1e6).toFixed(2))} MP`}export{n as i,i as n,r,e as t};
