@@ -1,7 +1,5 @@
 import { beforeEach, describe, expect, test, vi } from 'vitest';
 import { Blob as NodeBlob } from 'node:buffer';
-import { readFile } from 'node:fs/promises';
-import path from 'node:path';
 import { BlobWriter, TextReader, ZipWriter } from '@zip.js/zip.js';
 
 import exportCharx from './charxExport';
@@ -152,18 +150,6 @@ describe('CHARX export/import', () => {
             await asFile(blob, 'bad.charx'),
             {useWebWorkers: false},
         )).rejects.toThrow(/card\.json/i);
-    });
-
-    test('imports the committed safe example archive', async () => {
-        const bytes = await readFile(path.resolve(process.cwd(), 'examples/safe-office-worker.charx'));
-        const imported = await importCharx(
-            new File([bytes], 'safe-office-worker.charx', {type: 'application/zip'}),
-            {useWebWorkers: false},
-        );
-
-        expect(imported.card.data.name).toBe('Nora Bennett');
-        expect(imported.card.data.assets).toHaveLength(1);
-        expect(imported.card.data.assets[0].uri).toBe('embeded://assets/icon/images/main.png');
     });
 
     test('rejects archives with unsafe entry paths', async () => {

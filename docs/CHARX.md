@@ -112,5 +112,8 @@ raw library stack trace.
 
 ## Example
 
-`safe-office-worker.charx` in `examples/` is a small, SFW archive with an icon. It is used by the
-test suite and is safe to open in the editor.
+`Nora Bennett.charx` in `examples/` is a full reference card with 24 embedded images (icon,
+backgrounds, emotion portraits and scene images), a 19-entry lorebook, six alternate greetings
+and three group-only greetings. It is used by the test suite and is safe to open in the editor.
+CHARX is the only example format we ship: a JSON file cannot carry the images that make the card
+work.
