@@ -4,7 +4,6 @@ import {
     ButtonBase,
     Divider,
     Drawer,
-    Link,
     List,
     ListItemButton,
     ListItemIcon,
@@ -203,27 +202,6 @@ export default function MobileNav({ activeSection, onSectionChange }) {
                     <Divider sx={{ my: 1 }} />
                     <Typography color="text.secondary" sx={{ fontFamily: 'monospace', fontSize: '0.62rem', letterSpacing: '0.08em' }}>
                         LOCAL / V3
-                    </Typography>
-                    <Typography sx={{ color: 'rgba(242, 240, 233, 0.6)', fontSize: '0.62rem', mt: 1 }}>
-                        <Link
-                            href="https://icons8.com/icon/MTivAq0U9TSN/anime"
-                            rel="noopener noreferrer"
-                            target="_blank"
-                            underline="hover"
-                            sx={{ color: 'inherit' }}
-                        >
-                            Anime
-                        </Link>{' '}
-                        icon by{' '}
-                        <Link
-                            href="https://icons8.com"
-                            rel="noopener noreferrer"
-                            target="_blank"
-                            underline="hover"
-                            sx={{ color: 'inherit' }}
-                        >
-                            Icons8
-                        </Link>
                     </Typography>
                 </Box>
             </Drawer>

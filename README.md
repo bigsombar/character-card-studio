@@ -112,6 +112,5 @@ Character Card V3 specification by [Kwaroran](https://github.com/kwaroran/charac
 (MIT). The copy vendored in [SPEC_V3.md](SPEC_V3.md) is reproduced verbatim; see
 [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md).
 
-Site icon: [Anime](https://icons8.com/icon/MTivAq0U9TSN/anime) icon by
-[Icons8](https://icons8.com). The attribution also appears in the site footer as required by the
-free license.
+Site icon: original artwork created for Character Card Studio; no third-party license or attribution
+is required.

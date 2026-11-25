@@ -1,4 +1,4 @@
-import { Box, Link, Typography } from '@mui/material';
+import { Box } from '@mui/material';
 
 import useIsMobile from '../../hooks/useIsMobile';
 import MobileNav from './MobileNav';
@@ -39,46 +39,7 @@ export default function AppShell({ activeSection, onSectionChange, children }) {
                 >
                     {children}
                 </Box>
-                {isMobile ? (
-                    <MobileNav activeSection={activeSection} onSectionChange={onSectionChange} />
-                ) : (
-                    <Box
-                        component="footer"
-                        sx={{
-                            borderTop: 1,
-                            borderColor: 'divider',
-                            flexShrink: 0,
-                            px: 2,
-                            py: 0.5,
-                            textAlign: 'right',
-                        }}
-                    >
-                        <Typography
-                            component="span"
-                            sx={{ color: 'rgba(242, 240, 233, 0.6)', fontSize: '0.62rem' }}
-                        >
-                            <Link
-                                href="https://icons8.com/icon/MTivAq0U9TSN/anime"
-                                rel="noopener noreferrer"
-                                target="_blank"
-                                underline="hover"
-                                sx={{ color: 'inherit' }}
-                            >
-                                Anime
-                            </Link>{' '}
-                            icon by{' '}
-                            <Link
-                                href="https://icons8.com"
-                                rel="noopener noreferrer"
-                                target="_blank"
-                                underline="hover"
-                                sx={{ color: 'inherit' }}
-                            >
-                                Icons8
-                            </Link>
-                        </Typography>
-                    </Box>
-                )}
+                {isMobile && <MobileNav activeSection={activeSection} onSectionChange={onSectionChange} />}
             </Box>
         </Box>
     );

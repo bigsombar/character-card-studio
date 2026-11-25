@@ -35,9 +35,3 @@ LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION
 OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
 WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 ```
-
-## Icons
-
-The site icon is the [Anime](https://icons8.com/icon/MTivAq0U9TSN/anime) icon by
-[Icons8](https://icons8.com), used under the terms of its free license. The attribution also appears
-in the site footer.

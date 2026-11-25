@@ -104,21 +104,19 @@ Re-run the import/export measurements after changing the archive, PNG or asset p
   `/character-card-studio/` base path.
 - `npm run preview` serves the production build at `http://localhost:4173/character-card-studio/`.
 
-## Icon and attribution
+## Icon
 
-The site uses the Icons8 “Anime” icon, recolored to the site palette. The sidebar badge is rendered
-at 48×48 px, and the same artwork is exported to `favicon.ico`, `favicon.svg`, `logo192.png`,
-`logo512.png` and `apple-touch-icon.png`.
+The site icon is original artwork created for the project; no third-party license or attribution is
+required. The editable master lives in `docs/brand/icon-master.svg`.
 
-The required attribution is present in the site footer in small, semi-transparent text:
+- `public/favicon.svg` and `src/assets/brand-icon.svg` — `#FFE400` badge with a `#171717` glyph at
+  80% of the tile, 512×512 view box.
+- `public/favicon.ico` — PNG entries at 16, 32, 48 and 64 px.
+- `public/logo192.png`, `public/logo512.png` — rounded badge for the web manifest and social cards.
+- `public/apple-touch-icon.png` — 180×180 full-bleed badge, since iOS applies its own corner mask.
 
-```html
-<a target="_blank" href="https://icons8.com/icon/MTivAq0U9TSN/anime">Anime</a> icon by
-<a target="_blank" href="https://icons8.com">Icons8</a>
-```
-
-On mobile the same attribution appears in the **More** sheet. This attribution is a condition of
-the free Icons8 license and must remain visible.
+Rasterize the SVG with any SVG renderer at the target size; keep the glyph at 80% of the tile and the
+palette from `src/theme/tokens.js`.
 
 ## Release
 

@@ -41,9 +41,7 @@ icon and a text label. Palette values come from `src/theme/tokens.js`.
 │      │ Portrait     │ Section header         │
 │      │ (400 px)     │ Scrollable fields      │
 │      │              │                        │
-│      └──────────────┴────────────────────────┤
-│ Footer: attribution (desktop)                │
-└──────────────────────────────────────────────┘
+└──────┴──────────────┴────────────────────────┘
 ```
 
 - Desktop uses the vertical rail. Below the `md` breakpoint (900 px) the rail is replaced by a
@@ -54,7 +52,6 @@ icon and a text label. Palette values come from `src/theme/tokens.js`.
 - The portrait column is 400 px wide on desktop when enabled. It is hidden for Lorebook and Assets,
   and on mobile except for the compact portrait shown on the Character section.
 - The content column is the only scroll container; the shell never scrolls horizontally.
-- The desktop footer carries the Icons8 attribution; the mobile sheet repeats it.
 
 ## Field pattern
 
