@@ -106,8 +106,7 @@ Re-run the import/export measurements after changing the archive, PNG or asset p
 
 ## Icon
 
-The site icon is original artwork created for the project; no third-party license or attribution is
-required. The editable master lives in `docs/brand/icon-master.svg`.
+The editable master lives in `docs/brand/icon-master.svg`.
 
 - `public/favicon.svg` and `src/assets/brand-icon.svg` — `#FFE400` badge with a `#171717` glyph at
   80% of the tile, 512×512 view box.

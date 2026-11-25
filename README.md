@@ -111,6 +111,3 @@ Character Card Studio is a rewritten successor to that editor.
 Character Card V3 specification by [Kwaroran](https://github.com/kwaroran/character-card-spec-v3)
 (MIT). The copy vendored in [SPEC_V3.md](SPEC_V3.md) is reproduced verbatim; see
 [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md).
-
-Site icon: original artwork created for Character Card Studio; no third-party license or attribution
-is required.
