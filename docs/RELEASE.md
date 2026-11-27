@@ -119,12 +119,39 @@ palette from `src/theme/tokens.js`.
 
 ## Release
 
-1. Decide the version. The current package version is `0.1.0`; use `1.0.0` for the first public
-   stable release.
-2. Update `package.json` and `package-lock.json`.
-3. Commit as `chore: release vX.Y.Z`.
-4. Create an annotated tag and push it.
-5. Publish release notes with supported formats, breaking changes and known limitations.
+The Pages site is rebuilt on every push to `main`, independent of releases. A release is a curated,
+versioned snapshot for the Releases tab and for users who follow the changelog.
+
+### Versioning and cadence
+
+- Tags use `vMAJOR.MINOR.PATCH` (Semantic Versioning).
+- Patch (`v1.0.1`): bug fixes and small polish without new user-facing features.
+- Minor (`v1.1.0`): new features or formats, backwards-compatible.
+- Major (`v2.0.0`): breaking changes to stored data, card output or public behaviour.
+- Cut a release roughly every 10 commits on `main`, or earlier when a notable feature is ready.
+  Routine commits go to `main` without a release.
+
+### Procedure
+
+1. Run the preflight, smoke, security and performance checks above. Confirm `CI` and
+   `Deploy to GitHub Pages` are green on `main`.
+2. Bump `version` in `package.json` and `package-lock.json`.
+3. Move the `Unreleased` entries in `CHANGELOG.md` under the new version heading, with the date.
+4. Commit as `chore(release): vX.Y.Z` and push to `main`.
+5. Create and push an annotated tag.
+6. Publish the GitHub release with 3–5 curated highlights, supported formats, breaking changes and
+   known limitations.
+
+```powershell
+git tag -a vX.Y.Z -m "Character Card Studio vX.Y.Z"
+git push origin vX.Y.Z
+gh release create vX.Y.Z --title "vX.Y.Z" --notes-file release-notes.md --latest
+```
+
+GitHub's **Generate release notes** groups changes by pull-request labels from
+`.github/release.yml`, not by commit prefixes. This project pushes directly to `main`, so write the
+highlights manually and use `gh release create --generate-notes` only as a full-changelog appendix.
+Never move or delete a published tag; ship a follow-up patch instead.
 
 ## Rollback
 

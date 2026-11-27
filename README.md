@@ -10,6 +10,8 @@
 
 [Open the app](https://bigsombar.github.io/character-card-studio/) ·
 [GitHub](https://github.com/bigsombar/character-card-studio) ·
+[Releases](https://github.com/bigsombar/character-card-studio/releases) ·
+[Changelog](CHANGELOG.md) ·
 [License](LICENSE)
 
 ![Character Card Studio character editor with the Nora Bennett example card](screenshots/character-editor.png)
