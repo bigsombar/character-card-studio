@@ -118,7 +118,8 @@ Re-run the import/export measurements after changing the archive, PNG or asset p
 - The Pages footer shows a DEV-build notice linking to the release build.
 - `CLOUDFLARE_API_TOKEN` is a repository secret with `Workers Scripts: Edit`;
   `CLOUDFLARE_ACCOUNT_ID` is a repository variable.
-- Manual deploy: `$env:DEPLOY_TARGET='cloudflare'; npm run build; npx wrangler deploy`.
+- Emergency manual deploy, only with explicit user approval:
+  `$env:DEPLOY_TARGET='cloudflare'; npm run build; npx wrangler deploy`.
 - Keep GitHub Pages out of the index; it is a development playground only.
 
 ## Icon

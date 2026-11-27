@@ -6,6 +6,27 @@ All notable changes to Character Card Studio are documented here. The format fol
 
 ## [Unreleased]
 
+## [1.1.0] - 2026-11-27
+
+### Added
+
+- Change the type of a local asset from its details dialog. The editor moves the blob and URI to
+  the matching `assets/<type>/...` path, rewrites embedded references in card text, and preserves
+  the `main` rules. The only main icon cannot change type until another icon exists.
+- Automated Cloudflare Workers deployment on published GitHub releases. GitHub Pages is now the
+  `noindex` development playground.
+
+### Changed
+
+- Canonical, Open Graph, Twitter and JSON-LD URLs now point to
+  `https://character-card-studio.bigsombar.workers.dev/`.
+- Search verification codes are hostname-specific; page titles are brand-only.
+- GitHub Pages shows a DEV-build footer linking to the release build.
+
+### Fixed
+
+- `main` badges no longer appear on non-icon/background assets named `main`.
+
 ## [1.0.0] - 2026-11-27
 
 First stable release and baseline for future changes.
@@ -36,5 +57,6 @@ First stable release and baseline for future changes.
 - V2 export is intentionally not supported.
 - Browser storage is per-browser and is removed when site data is cleared.
 
-[Unreleased]: https://github.com/bigsombar/character-card-studio/compare/v1.0.0...HEAD
+[Unreleased]: https://github.com/bigsombar/character-card-studio/compare/v1.1.0...HEAD
+[1.1.0]: https://github.com/bigsombar/character-card-studio/releases/tag/v1.1.0
 [1.0.0]: https://github.com/bigsombar/character-card-studio/releases/tag/v1.0.0
