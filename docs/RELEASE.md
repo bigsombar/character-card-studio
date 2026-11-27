@@ -99,7 +99,7 @@ Re-run the import/export measurements after changing the archive, PNG or asset p
 - GitHub Pages is enabled with **Source: Deploy from a branch → `gh-pages`**.
 - GitHub Actions `CI` is green on `main`.
 - GitHub Actions `Deploy to GitHub Pages` succeeds.
-- Open `https://bigsombar.github.io/character-card-studio/` directly.
+- Open `https://bigsombar.github.io/character-card-studio/` directly (playground, `noindex`).
 - Confirm favicon, manifest, theme color `#272727`, and that all lazy chunks load from the
   `/character-card-studio/` base path.
 - `npm run preview` serves the production build at `http://localhost:4173/character-card-studio/`.

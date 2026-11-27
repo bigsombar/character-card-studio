@@ -4,7 +4,7 @@
   "private": true,
   "license": "AGPL-3.0-or-later",
   "description": "All-in-one editor for V3 character cards and lorebooks.",
-  "homepage": "https://bigsombar.github.io/character-card-studio/",
+  "homepage": "https://character-card-studio.bigsombar.workers.dev/",
   "repository": {
     "type": "git",
     "url": "https://github.com/bigsombar/character-card-studio.git"
