@@ -109,7 +109,7 @@ Re-run the import/export measurements after changing the archive, PNG or asset p
 - `.github/workflows/deploy-cloudflare.yml` deploys on a published GitHub release or manually;
   pushes to `main` only update the Pages playground.
 - Worker `character-card-studio` is served at
-  `https://character-card-studio.<account>.workers.dev`.
+  `https://character-card-studio.bigsombar.workers.dev`.
 - The build uses `DEPLOY_TARGET=cloudflare` so Vite serves from `/`, and copies
   `cloudflare/_headers` into `dist` to send `X-Robots-Tag: noindex` while Pages remains canonical.
 - `CLOUDFLARE_API_TOKEN` is a repository secret with `Workers Scripts: Edit`;
