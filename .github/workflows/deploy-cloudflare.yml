@@ -46,9 +46,6 @@ jobs:
       - name: Build for Cloudflare
         run: npm run build
 
-      - name: Mark staging deployment as noindex
-        run: cp cloudflare/_headers dist/_headers
-
       - name: Deploy to Cloudflare Workers
         uses: cloudflare/wrangler-action@v4
         with:

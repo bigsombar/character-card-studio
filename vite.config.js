@@ -26,9 +26,24 @@ function copySiteConfig() {
 // from the hostname root. Set DEPLOY_TARGET=cloudflare for the Workers build.
 const isCloudflareBuild = process.env.DEPLOY_TARGET === 'cloudflare';
 
+// Keep the staging noindex header out of the Pages build, but make every Workers build ship it.
+function copyCloudflareHeaders() {
+  return {
+    name: 'copy-cloudflare-headers',
+    apply: 'build',
+    closeBundle() {
+      if (!isCloudflareBuild) return;
+      const source = resolve(rootDir, 'cloudflare', '_headers');
+      if (existsSync(source)) {
+        copyFileSync(source, resolve(rootDir, 'dist', '_headers'));
+      }
+    },
+  };
+}
+
 export default defineConfig(({ command }) => ({
   base: command === 'build' && !isCloudflareBuild ? '/character-card-studio/' : '/',
-  plugins: [react(), copySiteConfig()],
+  plugins: [react(), copySiteConfig(), copyCloudflareHeaders()],
   build: {
     outDir: 'dist',
     sourcemap: false,
