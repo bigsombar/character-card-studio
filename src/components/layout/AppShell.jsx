@@ -37,38 +37,43 @@ export default function AppShell({ activeSection, onSectionChange, children }) {
                         minHeight: 0,
                         minWidth: 0,
                         overflow: 'hidden',
+                        position: 'relative',
                     }}
                 >
                     {children}
-                </Box>
-                {isPagesBuild && (
-                    <Box
-                        aria-label="Build information"
-                        component="footer"
-                        sx={{
-                            borderColor: 'divider',
-                            borderTop: 1,
-                            color: 'text.secondary',
-                            flexShrink: 0,
-                            px: { xs: 1.5, md: 3 },
-                            py: 0.75,
-                            textAlign: 'center',
-                        }}
-                    >
-                        <Typography component="p" sx={{ fontSize: '0.68rem', lineHeight: 1.4, m: 0 }}>
-                            DEV build. The release build is available at{' '}
+                    {isPagesBuild && (
+                        <Typography
+                            component="p"
+                            sx={{
+                                bottom: 10,
+                                color: 'text.secondary',
+                                fontSize: '0.65rem',
+                                lineHeight: 1.2,
+                                m: 0,
+                                opacity: 0.75,
+                                pointerEvents: 'none',
+                                position: 'absolute',
+                                right: 12,
+                                zIndex: 2,
+                            }}
+                        >
+                            DEV build ·{' '}
                             <Link
                                 href="https://character-card-studio.bigsombar.workers.dev/"
                                 rel="noopener noreferrer"
+                                sx={{
+                                    color: 'inherit',
+                                    pointerEvents: 'auto',
+                                    '&:hover': { color: 'text.primary' },
+                                }}
                                 target="_blank"
                                 underline="hover"
                             >
-                                character-card-studio.bigsombar.workers.dev
+                                release build
                             </Link>
-                            .
                         </Typography>
-                    </Box>
-                )}
+                    )}
+                </Box>
                 {isMobile && <MobileNav activeSection={activeSection} onSectionChange={onSectionChange} />}
             </Box>
         </Box>

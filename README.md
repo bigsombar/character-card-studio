@@ -8,16 +8,11 @@
 
 **A free, browser-based editor for Character Card V3 and lorebooks.**
 
-[Open the app](https://character-card-studio.bigsombar.workers.dev/) ·
+[DEV Build](https://bigsombar.github.io/character-card-studio/) ·
 [GitHub](https://github.com/bigsombar/character-card-studio) ·
 [Releases](https://github.com/bigsombar/character-card-studio/releases) ·
 [Changelog](CHANGELOG.md) ·
 [License](LICENSE)
-
-Development builds are published to
-[GitHub Pages](https://bigsombar.github.io/character-card-studio/) (`noindex`); the canonical
-release build is at
-[character-card-studio.bigsombar.workers.dev](https://character-card-studio.bigsombar.workers.dev/).
 
 ![Character Card Studio character editor with the Nora Bennett example card](screenshots/character-editor.png)
 
