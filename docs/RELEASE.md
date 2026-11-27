@@ -112,6 +112,8 @@ Re-run the import/export measurements after changing the archive, PNG or asset p
   `https://character-card-studio.bigsombar.workers.dev`.
 - The build uses `DEPLOY_TARGET=cloudflare` so Vite serves from `/`, and copies
   `cloudflare/_headers` into `dist` to send `X-Robots-Tag: noindex` while Pages remains canonical.
+- `vite.config.js` swaps the Google and Yandex site-verification codes for the Workers hostname;
+  the Pages build keeps its own codes. The Bing `msvalidate.01` code is shared.
 - `CLOUDFLARE_API_TOKEN` is a repository secret with `Workers Scripts: Edit`;
   `CLOUDFLARE_ACCOUNT_ID` is a repository variable.
 - Manual deploy: `$env:DEPLOY_TARGET='cloudflare'; npm run build; npx wrangler deploy`.
