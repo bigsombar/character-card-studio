@@ -104,20 +104,22 @@ Re-run the import/export measurements after changing the archive, PNG or asset p
   `/character-card-studio/` base path.
 - `npm run preview` serves the production build at `http://localhost:4173/character-card-studio/`.
 
-### Cloudflare Workers staging
+### Cloudflare Workers (production)
 
 - `.github/workflows/deploy-cloudflare.yml` deploys on a published GitHub release or manually;
   pushes to `main` only update the Pages playground.
 - Worker `character-card-studio` is served at
-  `https://character-card-studio.bigsombar.workers.dev`.
-- The build uses `DEPLOY_TARGET=cloudflare` so Vite serves from `/`, and copies
-  `cloudflare/_headers` into `dist` to send `X-Robots-Tag: noindex` while Pages remains canonical.
-- `vite.config.js` swaps the Google and Yandex site-verification codes for the Workers hostname;
-  the Pages build keeps its own codes. The Bing `msvalidate.01` code is shared.
+  `https://character-card-studio.bigsombar.workers.dev` and is the canonical indexed site.
+- The build uses `DEPLOY_TARGET=cloudflare` so Vite serves from `/`. `index.html` points canonical,
+  OG, Twitter and JSON-LD URLs at the Workers host.
+- The Pages build keeps `noindex, nofollow`; the Workers build flips it to
+  `index, follow, max-image-preview:large` and swaps the Google/Yandex verification codes.
+- `public/robots.txt` and `public/sitemap.xml` point at the Workers host.
+- The Pages footer shows a DEV-build notice linking to the release build.
 - `CLOUDFLARE_API_TOKEN` is a repository secret with `Workers Scripts: Edit`;
   `CLOUDFLARE_ACCOUNT_ID` is a repository variable.
 - Manual deploy: `$env:DEPLOY_TARGET='cloudflare'; npm run build; npx wrangler deploy`.
-- Do not remove `noindex` or change canonical URLs until the production switch is approved.
+- Keep GitHub Pages out of the index; it is a development playground only.
 
 ## Icon
 

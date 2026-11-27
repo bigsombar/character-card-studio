@@ -1,4 +1,4 @@
-import { Box } from '@mui/material';
+import { Box, Link, Typography } from '@mui/material';
 
 import useIsMobile from '../../hooks/useIsMobile';
 import MobileNav from './MobileNav';
@@ -11,6 +11,8 @@ import TopBar from './TopBar';
  */
 export default function AppShell({ activeSection, onSectionChange, children }) {
     const isMobile = useIsMobile();
+    const isPagesBuild =
+        typeof window !== 'undefined' && window.location.hostname === 'bigsombar.github.io';
 
     return (
         <Box
@@ -39,6 +41,34 @@ export default function AppShell({ activeSection, onSectionChange, children }) {
                 >
                     {children}
                 </Box>
+                {isPagesBuild && (
+                    <Box
+                        aria-label="Build information"
+                        component="footer"
+                        sx={{
+                            borderColor: 'divider',
+                            borderTop: 1,
+                            color: 'text.secondary',
+                            flexShrink: 0,
+                            px: { xs: 1.5, md: 3 },
+                            py: 0.75,
+                            textAlign: 'center',
+                        }}
+                    >
+                        <Typography component="p" sx={{ fontSize: '0.68rem', lineHeight: 1.4, m: 0 }}>
+                            DEV build. The release build is available at{' '}
+                            <Link
+                                href="https://character-card-studio.bigsombar.workers.dev/"
+                                rel="noopener noreferrer"
+                                target="_blank"
+                                underline="hover"
+                            >
+                                character-card-studio.bigsombar.workers.dev
+                            </Link>
+                            .
+                        </Typography>
+                    </Box>
+                )}
                 {isMobile && <MobileNav activeSection={activeSection} onSectionChange={onSectionChange} />}
             </Box>
         </Box>
