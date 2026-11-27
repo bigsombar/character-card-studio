@@ -37,43 +37,39 @@ export default function AppShell({ activeSection, onSectionChange, children }) {
                         minHeight: 0,
                         minWidth: 0,
                         overflow: 'hidden',
-                        position: 'relative',
                     }}
                 >
                     {children}
-                    {isPagesBuild && (
+                </Box>
+                {isPagesBuild && (
+                    <Box
+                        component="footer"
+                        sx={{
+                            bgcolor: 'background.default',
+                            color: 'text.secondary',
+                            flexShrink: 0,
+                            px: { xs: 1.5, md: 2 },
+                            py: { xs: 0.5, md: 0.75 },
+                            textAlign: 'right',
+                        }}
+                    >
                         <Typography
                             component="p"
-                            sx={{
-                                bottom: 10,
-                                color: 'text.secondary',
-                                fontSize: '0.65rem',
-                                lineHeight: 1.2,
-                                m: 0,
-                                opacity: 0.75,
-                                pointerEvents: 'none',
-                                position: 'absolute',
-                                right: 12,
-                                zIndex: 2,
-                            }}
+                            sx={{ fontSize: '0.65rem', lineHeight: 1.3, m: 0, opacity: 0.8 }}
                         >
                             DEV build ·{' '}
                             <Link
                                 href="https://character-card-studio.bigsombar.workers.dev/"
                                 rel="noopener noreferrer"
-                                sx={{
-                                    color: 'inherit',
-                                    pointerEvents: 'auto',
-                                    '&:hover': { color: 'text.primary' },
-                                }}
+                                sx={{ color: 'inherit', '&:hover': { color: 'text.primary' } }}
                                 target="_blank"
                                 underline="hover"
                             >
                                 release build
                             </Link>
                         </Typography>
-                    )}
-                </Box>
+                    </Box>
+                )}
                 {isMobile && <MobileNav activeSection={activeSection} onSectionChange={onSectionChange} />}
             </Box>
         </Box>
