@@ -104,6 +104,19 @@ Re-run the import/export measurements after changing the archive, PNG or asset p
   `/character-card-studio/` base path.
 - `npm run preview` serves the production build at `http://localhost:4173/character-card-studio/`.
 
+### Cloudflare Workers staging
+
+- `.github/workflows/deploy-cloudflare.yml` deploys on a published GitHub release or manually;
+  pushes to `main` only update the Pages playground.
+- Worker `character-card-studio` is served at
+  `https://character-card-studio.<account>.workers.dev`.
+- The build uses `DEPLOY_TARGET=cloudflare` so Vite serves from `/`, and copies
+  `cloudflare/_headers` into `dist` to send `X-Robots-Tag: noindex` while Pages remains canonical.
+- `CLOUDFLARE_API_TOKEN` is a repository secret with `Workers Scripts: Edit`;
+  `CLOUDFLARE_ACCOUNT_ID` is a repository variable.
+- Manual deploy: `$env:DEPLOY_TARGET='cloudflare'; npm run build; npx wrangler deploy`.
+- Do not remove `noindex` or change canonical URLs until the production switch is approved.
+
 ## Icon
 
 The editable master lives in `docs/brand/icon-master.svg`.
@@ -137,10 +150,10 @@ versioned snapshot for the Releases tab and for users who follow the changelog.
    `Deploy to GitHub Pages` are green on `main`.
 2. Bump `version` in `package.json` and `package-lock.json`.
 3. Move the `Unreleased` entries in `CHANGELOG.md` under the new version heading, with the date.
-4. Commit as `chore(release): vX.Y.Z` and push to `main`.
+4. Commit as `chore(release): vX.Y.Z` and push to `main` (this updates the Pages playground).
 5. Create and push an annotated tag.
 6. Publish the GitHub release with 3–5 curated highlights, supported formats, breaking changes and
-   known limitations.
+   known limitations. Publishing also deploys the tag to Cloudflare Workers.
 
 ```powershell
 git tag -a vX.Y.Z -m "Character Card Studio vX.Y.Z"

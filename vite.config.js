@@ -22,10 +22,12 @@ function copySiteConfig() {
   };
 }
 
-// The app is deployed as a GitHub Pages project site. During local development it is served
-// from the root, but production assets need the repository subpath.
+// GitHub Pages serves the app from the repository subpath, while Cloudflare Workers serves it
+// from the hostname root. Set DEPLOY_TARGET=cloudflare for the Workers build.
+const isCloudflareBuild = process.env.DEPLOY_TARGET === 'cloudflare';
+
 export default defineConfig(({ command }) => ({
-  base: command === 'build' ? '/character-card-studio/' : '/',
+  base: command === 'build' && !isCloudflareBuild ? '/character-card-studio/' : '/',
   plugins: [react(), copySiteConfig()],
   build: {
     outDir: 'dist',

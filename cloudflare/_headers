@@ -1,0 +1,4 @@
+# Staging only. GitHub Pages remains canonical until the search switch is done.
+# Remove this file from the Cloudflare build when the Workers deployment goes live.
+/*
+  X-Robots-Tag: noindex
