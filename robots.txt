@@ -2,4 +2,4 @@
 User-agent: *
 Disallow:
 
-Sitemap: https://bigsombar.github.io/character-card-studio/sitemap.xml
+Sitemap: https://character-card-studio.bigsombar.workers.dev/sitemap.xml
