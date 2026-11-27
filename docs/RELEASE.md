@@ -13,7 +13,7 @@ Required result:
 
 - ESLint: 0 errors, 0 warnings.
 - Vitest: all tests pass, including CHARX security, large-asset, axe and export-validation tests.
-  The current suite has 320 tests across 51 files.
+  The current suite has 321 tests across 50 files.
 - Build: no chunk-size warning; the main JS chunk should stay around 355 kB raw and under 150 kB
   gzip.
 

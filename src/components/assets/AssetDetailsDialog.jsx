@@ -7,7 +7,9 @@ import {
     DialogActions,
     DialogContent,
     DialogTitle,
+    MenuItem,
     Stack,
+    TextField,
     Tooltip,
     Typography,
 } from '@mui/material';
@@ -16,17 +18,40 @@ import Star from '@mui/icons-material/Star';
 import StarBorder from '@mui/icons-material/StarBorder';
 import UploadFileOutlined from '@mui/icons-material/UploadFileOutlined';
 
-import { ACCEPTED_FILE_EXTENSIONS, mediaKindForAsset, MEDIA_LABELS } from '../../assets/media';
+import {
+    ACCEPTED_FILE_EXTENSIONS,
+    mediaKindForAsset,
+    MEDIA_LABELS,
+    typeOptionsForMedia,
+} from '../../assets/media';
 import useAssetRecord from '../../hooks/useAssetRecord';
 import { formatByteSizeShort } from '../../utils/blob';
 import MediaPreview from './MediaPreview';
 
-export default function AssetDetailsDialog({asset, open, onClose, onDelete, onSetMain, onReplace}) {
+export default function AssetDetailsDialog({
+    asset,
+    assets = [],
+    open,
+    onClose,
+    onDelete,
+    onChangeType,
+    onSetMain,
+    onReplace,
+}) {
     const replaceRef = useRef(null);
     const {record} = useAssetRecord(asset?.uri);
     const kind = mediaKindForAsset(asset);
-    const isMain = asset?.name === 'main';
     const canBeMain = asset?.type === 'icon' || asset?.type === 'background';
+    const isMain = canBeMain && asset?.name === 'main';
+    const isLocalAsset = Boolean(asset?.uri?.startsWith('embeded://'));
+    const availableTypes = asset
+        ? [...new Set([asset.type, ...typeOptionsForMedia(kind)])]
+        : [];
+    const isOnlyMainIcon = Boolean(
+        asset?.type === 'icon'
+        && isMain
+        && !assets.some((item) => item.uri !== asset.uri && item.type === 'icon'),
+    );
     const accept = ACCEPTED_FILE_EXTENSIONS.map((ext) => `.${ext}`).join(',');
 
     if (!asset) return null;
@@ -39,7 +64,7 @@ export default function AssetDetailsDialog({asset, open, onClose, onDelete, onSe
                         {asset.name || 'Unnamed asset'}
                     </Typography>
                     <Typography color="text.secondary" sx={{fontSize: '0.7rem'}}>
-                        {MEDIA_LABELS[kind]} · {asset.type} · .{asset.ext || '?'}
+                        {MEDIA_LABELS[kind]} · {isLocalAsset ? '' : `${asset.type} · `}.{asset.ext || '?'}
                     </Typography>
                 </Box>
                 <Chip label={isMain ? 'main' : asset.type} size="small" variant="outlined" />
@@ -49,13 +74,33 @@ export default function AssetDetailsDialog({asset, open, onClose, onDelete, onSe
                     <MediaPreview asset={asset} variant="detail" />
                 </Box>
 
-                <Stack direction="row" spacing={1} sx={{flexWrap: 'wrap', gap: 1, mt: 2}}>
+                <Stack direction="row" spacing={1} sx={{alignItems: 'flex-start', flexWrap: 'wrap', gap: 1, mt: 2}}>
                     <Typography color="text.secondary" variant="body2">
-                        {record ? `${record.mime} · ${formatByteSizeShort(record.size)}` : 'Remote or data asset'}
+                        {record ? `${record.mime} · ${formatByteSizeShort(record.size)}`
+                            : isLocalAsset ? 'Local file not found' : 'Remote or data asset'}
                     </Typography>
-                    <Typography color="text.secondary" sx={{fontFamily: 'monospace', fontSize: '0.72rem', overflowWrap: 'anywhere'}}>
-                        {asset.uri}
-                    </Typography>
+                    {isLocalAsset ? (
+                        <TextField
+                            disabled={isOnlyMainIcon}
+                            helperText={isOnlyMainIcon
+                                ? 'Add another icon before changing the main icon.'
+                                : undefined}
+                            label="Type"
+                            onChange={(event) => onChangeType?.(asset.uri, event.target.value)}
+                            select
+                            size="small"
+                            sx={{minWidth: 180}}
+                            value={asset.type}
+                        >
+                            {availableTypes.map((type) => (
+                                <MenuItem key={type} value={type}>{type}</MenuItem>
+                            ))}
+                        </TextField>
+                    ) : (
+                        <Typography color="text.secondary" sx={{fontFamily: 'monospace', fontSize: '0.72rem', overflowWrap: 'anywhere'}}>
+                            {asset.uri}
+                        </Typography>
+                    )}
                 </Stack>
             </DialogContent>
             <DialogActions sx={{flexWrap: 'wrap', gap: 1}}>

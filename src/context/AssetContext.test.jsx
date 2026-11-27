@@ -185,6 +185,105 @@ describe('AssetProvider', () => {
         expect(unchanged.data.assets).toHaveLength(1);
     });
 
+    test('changes a local asset type, moves the blob and rewrites card references', async () => {
+        const {result} = renderHook(() => ({card: useCardStore(), assets: useAssets()}), {wrapper});
+        await waitFor(() => expect(result.current.assets).toBeDefined());
+
+        let asset;
+        await act(async () => {
+            asset = await result.current.assets.addFile(
+                pngFixtureFile('scene.png'),
+                {type: 'other', name: 'scene'},
+            );
+        });
+        await waitFor(() => expect(result.current.card.cardData.data.assets).toHaveLength(1));
+
+        await act(async () => {
+            result.current.card.patchCardData({description: `Scene: ![bg](${asset.uri})`});
+        });
+        await waitFor(() => {
+            expect(result.current.card.cardData.data.description).toContain(asset.uri);
+        });
+
+        let nextUri;
+        await act(async () => {
+            nextUri = await result.current.assets.changeAssetType(asset.uri, 'emotion');
+        });
+
+        expect(nextUri).toBe('embeded://assets/emotion/images/scene.png');
+        expect(result.current.card.cardData.data.assets[0]).toMatchObject({
+            type: 'emotion',
+            name: 'scene',
+            ext: 'png',
+            uri: nextUri,
+        });
+        expect(result.current.card.cardData.data.description).toBe(`Scene: ![bg](${nextUri})`);
+        expect(await getAsset(asset.uri)).toBeUndefined();
+        expect(await getAsset(nextUri)).toBeTruthy();
+    });
+
+    test('blocks changing the only main icon and promotes another icon when allowed', async () => {
+        const {result} = renderHook(() => ({card: useCardStore(), assets: useAssets()}), {wrapper});
+        await waitFor(() => expect(result.current.assets).toBeDefined());
+
+        let mainIcon;
+        await act(async () => {
+            mainIcon = await result.current.assets.addFile(
+                pngFixtureFile('main.png'),
+                {type: 'icon', name: 'main', main: true},
+            );
+        });
+        await waitFor(() => expect(result.current.card.cardData.data.assets).toHaveLength(1));
+
+        await expect(
+            result.current.assets.changeAssetType(mainIcon.uri, 'background'),
+        ).rejects.toThrow('Add another icon');
+
+        await act(async () => {
+            await result.current.assets.addFile(
+                pngFixtureFile('alternate.png'),
+                {type: 'icon', name: 'alternate'},
+            );
+        });
+        await waitFor(() => expect(result.current.card.cardData.data.assets).toHaveLength(2));
+
+        let nextUri;
+        await act(async () => {
+            nextUri = await result.current.assets.changeAssetType(mainIcon.uri, 'background');
+        });
+
+        const assets = result.current.card.cardData.data.assets;
+        expect(assets.find((item) => item.uri === nextUri)).toMatchObject({
+            type: 'background',
+            name: 'main',
+        });
+        expect(assets.some((item) => item.type === 'icon' && item.name === 'main')).toBe(true);
+    });
+
+    test('rejects type changes for non-embedded assets', async () => {
+        const {result} = renderHook(() => ({card: useCardStore(), assets: useAssets()}), {wrapper});
+        await waitFor(() => expect(result.current.assets).toBeDefined());
+
+        const uri = 'https://example.com/scene.png';
+        await act(async () => {
+            result.current.card.setCardData({
+                spec: 'chara_card_v3',
+                spec_version: '3.0',
+                data: {
+                    name: 'Remote',
+                    assets: [{type: 'other', name: 'scene', ext: 'png', uri}],
+                },
+            });
+        });
+        await waitFor(() => {
+            expect(result.current.card.cardData.data.assets[0].uri).toBe(uri);
+        });
+
+        await expect(
+            result.current.assets.changeAssetType(uri, 'background'),
+        ).rejects.toThrow('Only local embedded assets');
+    });
+
     test('replaces a ccdefault main icon with the PNG image on import', async () => {
         const {result} = renderHook(() => ({card: useCardStore(), assets: useAssets()}), {wrapper});
         await waitFor(() => expect(result.current.assets).toBeDefined());

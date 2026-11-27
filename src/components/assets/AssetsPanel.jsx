@@ -39,6 +39,7 @@ export default function AssetsPanel() {
     const {
         assetVersion,
         busy,
+        changeAssetType,
         cleanOrphanAssets,
         compressImageAssets,
         deleteAsset,
@@ -101,6 +102,24 @@ export default function AssetsPanel() {
             setNotice({severity: 'success', message: 'Asset replaced.'});
         } catch (error) {
             setNotice({severity: 'error', message: `Could not replace asset: ${error.message}`});
+        }
+    };
+
+    const handleChangeType = async (uri, type) => {
+        try {
+            const nextUri = await changeAssetType(uri, type);
+            if (selectedUri === uri) setSelectedUri(nextUri);
+            notify({
+                title: 'Asset type changed',
+                severity: 'success',
+                message: `Asset moved to "${type}".`,
+            });
+        } catch (error) {
+            notify({
+                title: 'Could not change asset type',
+                severity: 'error',
+                message: error.message,
+            });
         }
     };
 
@@ -265,7 +284,9 @@ export default function AssetsPanel() {
             />
             <AssetDetailsDialog
                 asset={selectedAsset}
+                assets={assets}
                 onClose={() => setSelectedUri(null)}
+                onChangeType={handleChangeType}
                 onDelete={(item) => {
                     setSelectedUri(null);
                     setPendingDelete(item);

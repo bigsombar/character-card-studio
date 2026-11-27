@@ -4,13 +4,21 @@ import { compressImageAssets as compressStoredImageAssets } from '../assets/asse
 import {
     defaultTypeForMedia,
     extensionFromFilename,
+    mediaKindForAsset,
     mediaKindForExtension,
     mimeForExtension,
+    typeOptionsForMedia,
     validateAssetFile,
 } from '../assets/media';
 import { createAssetUri, makeUniqueUri } from '../assets/paths';
 import { createThumbnail } from '../assets/thumbnails';
-import { clearAssets as clearStoredAssets, clearOrphanAssets, deleteAsset as deleteStoredAsset, putAsset } from '../storage/assetStore';
+import {
+    clearAssets as clearStoredAssets,
+    clearOrphanAssets,
+    deleteAsset as deleteStoredAsset,
+    getAsset,
+    putAsset,
+} from '../storage/assetStore';
 import { dataUrlToBlob } from '../utils/blob';
 import { useCardStore } from './cardStoreContext';
 
@@ -39,6 +47,24 @@ function chooseFallbackMain(assets, type) {
     return assets.map((asset) => (
         asset.type === type && asset === sameType[0] ? {...asset, name: 'main'} : asset
     ));
+}
+
+/** Rewrites an embedded URI inside every string value while preserving unknown card fields. */
+function replaceUriInValue(value, oldUri, newUri) {
+    if (typeof value === 'string') {
+        return value.includes(oldUri) ? value.split(oldUri).join(newUri) : value;
+    }
+    if (Array.isArray(value)) {
+        return value.map((item) => replaceUriInValue(item, oldUri, newUri));
+    }
+    if (value && typeof value === 'object') {
+        const next = {};
+        for (const [key, item] of Object.entries(value)) {
+            next[key] = replaceUriInValue(item, oldUri, newUri);
+        }
+        return next;
+    }
+    return value;
 }
 
 export function AssetProvider({children}) {
@@ -202,6 +228,67 @@ export function AssetProvider({children}) {
             )),
         }));
     }, [patchCardData]);
+
+    /**
+     * Moves a local embedded asset to another CCv3 type and rewrites every reference to its URI.
+     * Remote, data: and ccdefault: assets are deliberately rejected: there is no local file to move.
+     */
+    const changeAssetType = useCallback(async (uri, nextType) => {
+        const assets = cardData?.data?.assets ?? [];
+        const asset = assets.find((item) => item.uri === uri);
+        if (!asset) throw new Error('Asset not found.');
+        if (!uri.startsWith('embeded://')) {
+            throw new Error('Only local embedded assets can be moved to another type.');
+        }
+        if (asset.type === nextType) return uri;
+
+        const kind = mediaKindForAsset(asset);
+        if (!typeOptionsForMedia(kind).includes(nextType)) {
+            throw new Error(`Type "${nextType}" is not available for ${kind} assets.`);
+        }
+
+        const otherIcons = assets.filter((item) => item.uri !== uri && item.type === 'icon');
+        if (asset.type === 'icon' && asset.name === 'main' && otherIcons.length === 0) {
+            throw new Error('Add another icon before changing the only main icon.');
+        }
+
+        const record = await getAsset(uri);
+        const ext = asset.ext || record?.ext || 'bin';
+        const reserved = new Set(assets.filter((item) => item.uri !== uri).map((item) => item.uri));
+        const nextUri = makeUniqueUri(
+            createAssetUri({type: nextType, name: asset.name, ext}),
+            reserved,
+        );
+
+        if (record) {
+            await putAsset({...record, uri: nextUri, ext, name: asset.name || record.name});
+            await deleteStoredAsset(uri);
+        }
+
+        try {
+            patchCardData((prev) => {
+                const nextData = replaceUriInValue(prev.data, uri, nextUri);
+                let nextAssets = (nextData.assets ?? []).map((item) => (
+                    item.uri === nextUri ? {...item, type: nextType, ext} : item
+                ));
+                if (asset.name === 'main' && (nextType === 'icon' || nextType === 'background')) {
+                    nextAssets = applyMain(nextAssets, nextUri);
+                }
+                nextAssets = chooseFallbackMain(nextAssets, 'icon');
+                nextAssets = chooseFallbackMain(nextAssets, 'background');
+                return {...nextData, assets: nextAssets};
+            });
+        } catch (error) {
+            if (record) {
+                await putAsset({...record, uri});
+                await deleteStoredAsset(nextUri);
+            }
+            throw error;
+        }
+
+        bumpVersion();
+        return nextUri;
+    }, [cardData?.data?.assets, patchCardData, bumpVersion]);
 
     const clearAllAssets = useCallback(async () => {
         setBusy(true);
@@ -379,6 +466,7 @@ export function AssetProvider({children}) {
         setMain,
         setMainIcon,
         updateAssetMetadata,
+        changeAssetType,
         clearAllAssets,
         cleanOrphanAssets,
         compressImageAssets,
@@ -386,8 +474,8 @@ export function AssetProvider({children}) {
         ingestCardAssets,
     }), [
         assetVersion, busy, addFile, addFiles, deleteAsset, replaceAsset, setMain, setMainIcon,
-        updateAssetMetadata, clearAllAssets, cleanOrphanAssets, compressImageAssets, ensureMainIcon,
-        ingestCardAssets,
+        updateAssetMetadata, changeAssetType, clearAllAssets, cleanOrphanAssets, compressImageAssets,
+        ensureMainIcon, ingestCardAssets,
     ]);
 
     return <AssetContext.Provider value={value}>{children}</AssetContext.Provider>;

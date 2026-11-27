@@ -84,6 +84,11 @@ CHARX export require an explicit action.
   placeholder is replaced with the real local asset so reload and export keep the portrait.
 - **Preview/play** — images open full-size, audio has an embedded player, video has a poster and
   modal playback.
+- **Change type** — local `embeded://` assets expose a type selector in the details dialog. The
+  editor moves the blob and URI to the matching `assets/<type>/...` folder, rewrites embedded URI
+  references in the card, and preserves the `main` rules. The only main icon cannot change type
+  until another icon exists. Remote, `data:` and `ccdefault:` assets keep their URI and do not show
+  the selector.
 - **Replace** — replaces bytes and keeps the asset name/type; the extension may change.
 - **Compress images** — resizes locally stored PNG, JPEG and WebP assets to a shared megapixel
   target (2, 1.5, 1 or 0.5 MP). Presets that would not shrink any image are hidden. Aspect ratio is

@@ -11,8 +11,8 @@ import MediaPreview from './MediaPreview';
 export default function AssetCard({asset, onOpen, onDelete, onSetMain}) {
     const {record} = useAssetRecord(asset.uri);
     const kind = mediaKindForAsset(asset);
-    const isMain = asset.name === 'main';
     const canBeMain = asset.type === 'icon' || asset.type === 'background';
+    const isMain = canBeMain && asset.name === 'main';
 
     const open = () => onOpen(asset.uri);
 
