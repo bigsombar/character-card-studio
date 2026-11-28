@@ -139,6 +139,42 @@ describe('CHARX export/import', () => {
         expect(exported.card.data.assets).toBeUndefined();
     });
 
+    test('adds a RisuAI compatibility layer without duplicating archive entries', async () => {
+        const dataUri = `data:image/png;base64,${BLANK_PNG}`;
+        const deskUri = 'embeded://assets/background/images/desk.png';
+        const happyUri = 'embeded://assets/emotion/images/happy.png';
+        const card = sampleCard({
+            name: 'Risu compat',
+            first_mes: `![Desk](${deskUri}) and ![Happy](${happyUri})`,
+            assets: [
+                {type: 'background', name: 'desk', ext: 'png', uri: dataUri},
+                {type: 'emotion', name: 'happy', ext: 'png', uri: dataUri},
+            ],
+        });
+
+        const exported = await exportCharx(card, {useWebWorkers: false, risuCompat: true});
+
+        expect(exported.risuCompat).toEqual({converted: 2, mirrors: 1});
+        expect(exported.card.data.first_mes).toBe('{{image::desk}} and {{emotion::happy}}');
+        expect(exported.card.data.assets).toHaveLength(3);
+        expect(exported.card.data.assets).toContainEqual({
+            type: 'x-risu-asset',
+            name: 'desk',
+            ext: 'png',
+            uri: deskUri,
+        });
+        // Mirrors reuse the same archive entries.
+        expect(exported.entries).toHaveLength(2);
+        // The editor card is never mutated by the compatibility export.
+        expect(card.data.assets).toHaveLength(2);
+        expect(card.data.first_mes).toContain(deskUri);
+
+        const standard = await exportCharx(card, {useWebWorkers: false});
+        expect(standard.risuCompat).toBeNull();
+        expect(standard.card.data.first_mes).toContain(deskUri);
+        expect(standard.card.data.assets.some((asset) => asset.type === 'x-risu-asset')).toBe(false);
+    });
+
     test('rejects an archive without card.json', async () => {
         const blobWriter = new BlobWriter('application/zip');
         const writer = new ZipWriter(blobWriter, {useWebWorkers: false, useCompressionStream: false});

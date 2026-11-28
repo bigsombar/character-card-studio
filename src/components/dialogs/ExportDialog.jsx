@@ -57,6 +57,7 @@ export default function ExportDialog({ cardData, exporting, onClose, onExport, o
     const [format, setFormat] = useState('charx');
     const [embedRemote, setEmbedRemote] = useState(true);
     const [inlineAssets, setInlineAssets] = useState(true);
+    const [risuCompat, setRisuCompat] = useState(false);
 
     const validation = useMemo(() => validateCardV3(createExportSnapshot(cardData)), [cardData]);
 
@@ -65,7 +66,7 @@ export default function ExportDialog({ cardData, exporting, onClose, onExport, o
     };
 
     const handleExport = async () => {
-        const result = await onExport(format, { embedRemote, inlineAssets });
+        const result = await onExport(format, { embedRemote, inlineAssets, risuCompat });
         if (result?.ok) onClose();
     };
 
@@ -124,10 +125,23 @@ export default function ExportDialog({ cardData, exporting, onClose, onExport, o
 
                 <Box sx={{ mt: 2 }}>
                     {format === 'charx' && (
-                        <FormControlLabel
-                            control={<Checkbox checked={embedRemote} onChange={(event) => setEmbedRemote(event.target.checked)} />}
-                            label="Download HTTPS assets and include them in the archive"
-                        />
+                        <>
+                            <FormControlLabel
+                                control={<Checkbox checked={embedRemote} onChange={(event) => setEmbedRemote(event.target.checked)} />}
+                                label="Download HTTPS assets and include them in the archive"
+                            />
+                            <FormControlLabel
+                                control={<Checkbox checked={risuCompat} onChange={(event) => setRisuCompat(event.target.checked)} />}
+                                label="Add RisuAI compatibility (media macros and asset aliases)"
+                                sx={{ display: 'flex', mt: 0.5 }}
+                            />
+                            <Typography color="text.secondary" sx={{ display: 'block', ml: 4, mt: 0.25, maxWidth: 620 }} variant="caption">
+                                Changes only this download: inline <code>embeded://</code> media becomes
+                                RisuAI <code>{'{{image::name}}'}</code> macros and the referenced assets gain
+                                <code> x-risu-asset</code> aliases. The editor card and the standard export stay
+                                untouched; other apps will show those macros literally.
+                            </Typography>
+                        </>
                     )}
                     {format === 'json' && (
                         <FormControlLabel

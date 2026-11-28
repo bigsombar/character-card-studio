@@ -102,7 +102,14 @@ export function extractRemoteMedia(text) {
     return [...found.values()].map((entry) => ({url: entry.url, kind: entry.kind}));
 }
 
-function visitTextFields(data, visitor) {
+/**
+ * Applies `visitor` to every editable text field that can contain media references.
+ * The visitor receives and returns the text value; it may return the value unchanged.
+ *
+ * @param {Object} data Card `data` object (mutated in place)
+ * @param {(value: string, path: string) => string} visitor
+ */
+export function visitTextFields(data, visitor) {
     if (!data || typeof data !== 'object') return;
 
     for (const field of TEXT_FIELDS) {

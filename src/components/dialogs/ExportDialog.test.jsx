@@ -50,7 +50,33 @@ describe('ExportDialog', () => {
 
         fireEvent.click(screen.getByRole('button', { name: /export v3 json/i }));
 
-        await waitFor(() => expect(onExport).toHaveBeenCalledWith('json', { embedRemote: true, inlineAssets: true }));
+        await waitFor(() => expect(onExport).toHaveBeenCalledWith('json', { embedRemote: true, inlineAssets: true, risuCompat: false }));
         await waitFor(() => expect(onClose).toHaveBeenCalled());
+    });
+
+    test('passes the RisuAI compatibility flag for CHARX', async () => {
+        const onExport = vi.fn().mockResolvedValue({ ok: true });
+
+        render(
+            <ExportDialog
+                cardData={validCard()}
+                exporting={false}
+                onClose={vi.fn()}
+                onExport={onExport}
+                open
+                progress={null}
+            />,
+        );
+
+        fireEvent.click(screen.getByLabelText(/RisuAI compatibility/i));
+        expect(screen.getByLabelText(/RisuAI compatibility/i)).toBeChecked();
+
+        fireEvent.click(screen.getByRole('button', { name: /export charx/i }));
+
+        await waitFor(() => expect(onExport).toHaveBeenCalledWith('charx', {
+            embedRemote: true,
+            inlineAssets: true,
+            risuCompat: true,
+        }));
     });
 });

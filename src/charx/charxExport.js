@@ -10,6 +10,7 @@ import {
     pathToEmbededUri,
     sanitizeExportPath,
 } from './charxPaths';
+import { convertCardForRisuAI } from './risuCompat';
 
 const MIME_EXTENSION = {
     'image/png': 'png',
@@ -127,15 +128,21 @@ async function materializeAsset(asset, {embedRemote, reserved, warnings}) {
  * Builds a CCv3 .charx archive with card.json at the root and assets under
  * assets/{type}/{images|audio|video|other}/...
  *
+ * With `risuCompat` enabled the exported card is additionally adapted for RisuAI: inline
+ * `embeded://` media becomes RisuAI CBS macros and the referenced assets gain `x-risu-asset`
+ * mirrors. Media files are shared, so the archive does not grow. The card passed in is not
+ * modified.
+ *
  * @param {Object} card
- * @param {{onProgress?: Function, embedRemote?: boolean, useWebWorkers?: boolean}} [options]
- * @returns {Promise<{blob: Blob, card: Object, warnings: Array, entries: Array}>}
+ * @param {{onProgress?: Function, embedRemote?: boolean, useWebWorkers?: boolean, risuCompat?: boolean}} [options]
+ * @returns {Promise<{blob: Blob, card: Object, warnings: Array, entries: Array, risuCompat: ?{converted: number, mirrors: number}}>}
  */
 export default async function exportCharx(card, options = {}) {
     const {
         onProgress = () => {},
         embedRemote = true,
         useWebWorkers = true,
+        risuCompat = false,
     } = options;
 
     const outgoing = createExportSnapshot(card);
@@ -144,6 +151,7 @@ export default async function exportCharx(card, options = {}) {
     const reserved = new Set([CHARX_CARD_PATH]);
     const entries = [];
     const outputAssets = [];
+    const aliases = new Map();
 
     for (let index = 0; index < inputAssets.length; index++) {
         const asset = inputAssets[index];
@@ -156,6 +164,7 @@ export default async function exportCharx(card, options = {}) {
 
         const result = await materializeAsset(asset, {embedRemote, reserved, warnings});
         if (result.asset) outputAssets.push(result.asset);
+        if (result.asset && asset?.uri !== result.asset.uri) aliases.set(asset.uri, result.asset.uri);
         if (result.entry) entries.push(result.entry);
     }
 
@@ -166,6 +175,15 @@ export default async function exportCharx(card, options = {}) {
             assets: outputAssets.length > 0 ? outputAssets : undefined,
         },
     };
+
+    let risuSummary = null;
+    if (risuCompat) {
+        const converted = convertCardForRisuAI(cardForArchive, {aliases});
+        cardForArchive.data = converted.card.data;
+        warnings.push(...converted.warnings);
+        risuSummary = {converted: converted.converted, mirrors: converted.mirrors.length};
+    }
+
     const cardJson = JSON.stringify(cardForArchive, null, 2);
 
     onProgress({phase: 'writing', current: entries.length, total: entries.length + 1, message: 'Writing CHARX…'});
@@ -191,6 +209,7 @@ export default async function exportCharx(card, options = {}) {
         blob,
         card: cardForArchive,
         warnings,
+        risuCompat: risuSummary,
         entries: entries.map((entry) => ({
             path: entry.path,
             size: entry.blob.size,

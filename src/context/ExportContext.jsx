@@ -67,6 +67,7 @@ export function ExportProvider({ children }) {
                 const { default: exportCharx } = await import('../charx/charxExport');
                 result = await exportCharx(outgoing, {
                     embedRemote: options.embedRemote ?? true,
+                    risuCompat: options.risuCompat ?? false,
                     onProgress: setProgress,
                 });
             } else if (format === 'json') {
@@ -83,15 +84,23 @@ export function ExportProvider({ children }) {
             }
 
             const extension = FORMAT_EXTENSION[format] ?? 'json';
-            downloadBlob(result.blob, safeFilename(result.card?.data?.name ?? outgoing.data.name, extension));
+            const nameSuffix = format === 'charx' && options.risuCompat ? ' (RisuAI)' : '';
+            downloadBlob(
+                result.blob,
+                safeFilename(`${result.card?.data?.name ?? outgoing.data.name}${nameSuffix}`, extension),
+            );
 
             const warnings = [...validation.warnings, ...(result.warnings ?? [])];
+            const risuSummary = result.risuCompat;
+            const risuNote = risuSummary
+                ? ` ${risuSummary.converted} media reference${risuSummary.converted === 1 ? '' : 's'} converted and ${risuSummary.mirrors} RisuAI asset alias${risuSummary.mirrors === 1 ? '' : 'es'} added.`
+                : '';
             notify({
                 title: `${FORMAT_LABEL[format] ?? 'Card'} exported`,
                 severity: warnings.length > 0 ? 'warning' : 'success',
                 message: warnings.length > 0
-                    ? `The ${FORMAT_LABEL[format] ?? 'card'} file was downloaded. Review the warnings below.`
-                    : `The ${FORMAT_LABEL[format] ?? 'card'} file was downloaded.`,
+                    ? `The ${FORMAT_LABEL[format] ?? 'card'} file was downloaded. Review the warnings below.${risuNote}`
+                    : `The ${FORMAT_LABEL[format] ?? 'card'} file was downloaded.${risuNote}`,
                 warnings,
             });
 

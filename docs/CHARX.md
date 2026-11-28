@@ -68,6 +68,31 @@ Paths are sanitized to ASCII `[A-Za-z0-9._/-]`, collisions get `-2`, `-3`, … s
 editor never writes outside `assets/`. The ZIP writer runs in a Web Worker when the browser supports
 it.
 
+## RisuAI compatibility (optional)
+
+RisuAI does not resolve `embeded://` URIs in message text: its sanitizer drops the unknown protocol,
+so markdown/HTML images lose their source. It only renders its own CBS macros, and those resolve
+either from standard `emotion` assets or from additional assets exported with the custom
+`x-risu-asset` type.
+
+The export dialog has an opt-in **Add RisuAI compatibility** checkbox for CHARX. It changes only the
+exported copy of the card:
+
+- inline images, audio and video with `embeded://` destinations become `{{image::name}}`,
+  `{{emotion::name}}`, `{{audio::name}}` or `{{video::name}}`;
+- the referenced image/audio/video assets gain `x-risu-asset` aliases whose `name` is the file stem;
+- emotion references use the standard `emotion` type and need no alias.
+
+Aliases point at the same archive paths as the canonical entries, so no media is written twice; only
+`card.json` grows. The editor card and the regular export keep the canonical
+`![alt](embeded://path)` syntax and the standard CCv3 asset types. The downloaded file is suffixed
+with ` (RisuAI)`.
+
+Other CCv3 applications will show the macros literally, and RisuAI lists aliased assets twice (as a
+character image and under Additional Assets). Keep the canonical CHARX as the primary file and use
+the RisuAI variant only when that compatibility is needed. References that cannot be converted
+(missing assets, non-media files) are left unchanged and reported as export warnings.
+
 ## Import
 
 - The archive is opened with `@zip.js/zip.js` using a Web Worker when available.
